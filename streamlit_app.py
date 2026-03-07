@@ -799,40 +799,55 @@ with tab_detect:
             })
 
             # ── Route to review queue or blocked log ──────────────────────────
+            # Use Claude's raw individual action (result.action) for review-queue
+            # routing — not the consensus. This catches the common case where
+            # Claude says FLAG but cross-validation disagreement escalates it to
+            # BLOCK: the human reviewer must still see the item.
             SAFE_FALLBACK = (
                 "I'm sorry, I'm not able to provide specific details on that right now. "
                 "Please speak with one of our advisors who can give you accurate, "
                 "personalised guidance based on your situation."
             )
-            if history_action == "FLAG":
+            raw_claude_action = result.action  # Claude's own verdict before consensus
+            escalated_to_block = (raw_claude_action == "FLAG" and history_action == "BLOCK")
+
+            if raw_claude_action == "FLAG":
+                # Always queue FLAG items — including ones escalated to BLOCK by
+                # cross-validation disagreement (escalated flag shown in the card)
                 st.session_state._queue_counter += 1
                 st.session_state.review_queue.append({
-                    "id":           st.session_state._queue_counter,
-                    "time":         datetime.now().strftime("%H:%M:%S"),
-                    "industry":     industry,
-                    "query":        query,
-                    "ai_response":  result.llm_response,
-                    "confidence":   round(history_conf, 1),
-                    "risk":         round(history_risk, 1),
-                    "issues":       result.issues,
-                    "fabrication":  result.fabrication_indicators,
-                    "explanation":  result.explanation,
-                    "reviewer":     st.session_state.user_name,
-                    "status":       "pending",   # pending | approved | rejected | escalated
-                    "reviewer_note": "",
+                    "id":                   st.session_state._queue_counter,
+                    "time":                 datetime.now().strftime("%H:%M:%S"),
+                    "industry":             industry,
+                    "query":                query,
+                    "ai_response":          result.llm_response,
+                    "confidence":           round(result.confidence_score, 1),
+                    "risk":                 round(result.risk_score, 1),
+                    "consensus_action":     history_action,
+                    "consensus_confidence": round(history_conf, 1),
+                    "escalated":            escalated_to_block,
+                    "issues":               result.issues,
+                    "fabrication":          result.fabrication_indicators,
+                    "explanation":          result.explanation,
+                    "reviewer":             st.session_state.user_name,
+                    "status":               "pending",
+                    "reviewer_note":        "",
                 })
-            elif history_action == "BLOCK":
+
+            if history_action == "BLOCK":
+                # Log all BLOCKs (direct blocks + disagreement-escalated flags)
                 st.session_state.blocked_responses.append({
                     "time":         datetime.now().strftime("%H:%M:%S"),
                     "industry":     industry,
                     "query":        query,
-                    "ai_response":  result.llm_response,   # what AI generated (never shown to user)
-                    "user_saw":     SAFE_FALLBACK,          # what user actually received
+                    "ai_response":  result.llm_response,
+                    "user_saw":     SAFE_FALLBACK,
                     "confidence":   round(history_conf, 1),
                     "risk":         round(history_risk, 1),
                     "issues":       result.issues,
                     "fabrication":  result.fabrication_indicators,
                     "explanation":  result.explanation,
+                    "escalated":    escalated_to_block,
                 })
 
         except Exception as e:
@@ -1629,16 +1644,35 @@ with tab_review:
             st.markdown(f"### ⏳ Pending Review  ({len(pending)} items)")
             for item in pending:
                 with st.container():
+                    escalated = item.get("escalated", False)
+                    header_bg    = "#FFF1F2"      if escalated else "#FFFBEB"
+                    header_border= "#FECDD3"      if escalated else "#FCD34D"
+                    header_color = "#991B1B"      if escalated else "#92400E"
+                    status_label = (
+                        f"⬆️ ESCALATED → {item.get('consensus_action','BLOCK')}"
+                        if escalated else "PENDING REVIEW"
+                    )
+                    status_bg    = "#FEE2E2"      if escalated else "#FEF9C3"
+                    status_border= "#FECDD3"      if escalated else "#FCD34D"
+                    flag_icon    = "🚨" if escalated else "⚠️"
                     st.markdown(
-                        f"<div style='background:#FFFBEB;border:2px solid #FCD34D;"
-                        f"border-radius:12px;padding:16px;margin-bottom:16px'>"
+                        f"<div style='background:{header_bg};border:2px solid {header_border};"
+                        f"border-radius:12px;padding:16px;margin-bottom:8px'>"
                         f"<div style='display:flex;justify-content:space-between;align-items:center'>"
-                        f"<div style='font-weight:700;color:#92400E;font-size:1rem'>"
-                        f"⚠️ FLAG #{item['id']}  ·  {item['industry']}  ·  {item['time']}</div>"
-                        f"<div style='background:#FEF9C3;border:1px solid #FCD34D;"
+                        f"<div style='font-weight:700;color:{header_color};font-size:1rem'>"
+                        f"{flag_icon} FLAG #{item['id']}  ·  {item['industry']}  ·  {item['time']}</div>"
+                        f"<div style='background:{status_bg};border:1px solid {status_border};"
                         f"border-radius:8px;padding:4px 12px;font-size:.8rem;"
-                        f"color:#92400E;font-weight:600'>PENDING REVIEW</div>"
-                        f"</div></div>",
+                        f"color:{header_color};font-weight:600'>{status_label}</div>"
+                        f"</div>"
+                        + (
+                            f"<div style='margin-top:8px;background:#FEE2E2;border-radius:6px;"
+                            f"padding:6px 10px;font-size:.82rem;color:#991B1B'>"
+                            f"🔴 <strong>Cross-validation disagreement escalated this FLAG → BLOCK.</strong> "
+                            f"Review the AI response below before making your decision.</div>"
+                            if escalated else ""
+                        )
+                        + "</div>",
                         unsafe_allow_html=True,
                     )
 
@@ -1686,10 +1720,21 @@ with tab_review:
 
                     with tl_col:
                         st.markdown("**TrustLayer Verdict**")
+                        consensus_lbl   = item.get("consensus_action", "FLAG")
+                        consensus_badge = f"badge-{consensus_lbl.lower()}"
+                        escalated_html  = (
+                            f"<div style='margin-top:6px;font-size:.72rem;color:#64748B'>"
+                            f"Consensus (cross-val)</div>"
+                            f"<div class='{consensus_badge}' style='margin-top:2px'>"
+                            f"{consensus_lbl}</div>"
+                        ) if item.get("escalated") else ""
                         st.markdown(
                             f"<div style='background:#FFFBEB;border:1px solid #FCD34D;"
                             f"border-radius:8px;padding:10px;text-align:center'>"
+                            f"<div style='font-size:.72rem;color:#64748B;margin-bottom:4px'>"
+                            f"Claude raw decision</div>"
                             f"<div class='badge-flag'>⚠️ FLAG</div>"
+                            f"{escalated_html}"
                             f"<div style='margin-top:8px;font-size:.9rem'>"
                             f"<strong>Conf:</strong> {item['confidence']}%</div>"
                             f"<div style='font-size:.9rem'>"
