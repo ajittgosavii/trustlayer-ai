@@ -109,6 +109,10 @@ if "last_result" not in st.session_state:
 if "last_cv_result" not in st.session_state:
     st.session_state.last_cv_result = None
 
+# Transfer pending preset query into the widget key BEFORE the widget renders
+if "_pending_query" in st.session_state:
+    st.session_state["query_input"] = st.session_state.pop("_pending_query")
+
 
 # ── Helper: get detector (cached per API key) ─────────────────────────────────
 @st.cache_resource
@@ -310,7 +314,7 @@ with tab_detect:
         if selected_label != "— select —":
             chosen = next(s for s in scenarios if s["label"] == selected_label)
             if chosen["query"] and st.button("Load →", use_container_width=True):
-                st.session_state["query_input"] = chosen["query"]
+                st.session_state["_pending_query"] = chosen["query"]
                 st.rerun()
 
         # Show what grounding data will be used
