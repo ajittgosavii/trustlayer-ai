@@ -100,6 +100,65 @@ st.markdown("""
     padding: 20px 28px; border-radius: 12px; margin-bottom: 24px;
     display:flex; align-items:center; gap:16px;
 }
+
+/* ── Login page ── */
+.login-wrap {
+    min-height: 100vh;
+    display: flex; align-items: center; justify-content: center;
+    background: linear-gradient(135deg, #0F172A 0%, #0D2952 50%, #0F172A 100%);
+}
+.login-card {
+    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(255,255,255,0.10);
+    border-radius: 20px;
+    padding: 48px 40px 40px;
+    width: 420px;
+    backdrop-filter: blur(16px);
+    box-shadow: 0 25px 60px rgba(0,0,0,0.5);
+}
+.login-title {
+    color: #fff; font-size: 1.55rem; font-weight: 800;
+    text-align: center; margin-bottom: 4px;
+}
+.login-sub {
+    color: #94A3B8; font-size: .88rem; text-align: center; margin-bottom: 32px;
+}
+.sso-btn {
+    display: flex; align-items: center; justify-content: center;
+    gap: 10px; width: 100%; padding: 11px 0;
+    border-radius: 10px; border: 1px solid rgba(255,255,255,0.15);
+    background: rgba(255,255,255,0.06); color: #E2E8F0;
+    font-size: .9rem; font-weight: 600; cursor: pointer;
+    margin-bottom: 10px; transition: background .2s;
+}
+.sso-btn:hover { background: rgba(255,255,255,0.12); }
+.divider-line {
+    display: flex; align-items: center; gap: 12px;
+    color: #475569; font-size: .82rem; margin: 20px 0;
+}
+.divider-line::before, .divider-line::after {
+    content: ""; flex: 1; height: 1px; background: rgba(255,255,255,0.08);
+}
+
+/* Animated logo */
+@keyframes pulse-ring {
+    0%   { transform: scale(0.9); opacity: 0.6; }
+    70%  { transform: scale(1.15); opacity: 0; }
+    100% { transform: scale(0.9); opacity: 0; }
+}
+@keyframes scan-line {
+    0%   { transform: translateY(-22px); opacity: 0; }
+    20%  { opacity: 1; }
+    80%  { opacity: 1; }
+    100% { transform: translateY(22px); opacity: 0; }
+}
+@keyframes shield-glow {
+    0%, 100% { filter: drop-shadow(0 0 6px rgba(0,102,255,0.5)); }
+    50%       { filter: drop-shadow(0 0 18px rgba(0,102,255,0.9)); }
+}
+.logo-svg { animation: shield-glow 3s ease-in-out infinite; }
+.pulse-ring { animation: pulse-ring 2.5s ease-out infinite; transform-origin: center; }
+.scan-line  { animation: scan-line 2.8s ease-in-out infinite; }
 </style>
 """, unsafe_allow_html=True)
 
@@ -111,10 +170,136 @@ if "last_result" not in st.session_state:
     st.session_state.last_result = None
 if "last_cv_result" not in st.session_state:
     st.session_state.last_cv_result = None
+if "authenticated" not in st.session_state:
+    st.session_state.authenticated = False
+if "user_name" not in st.session_state:
+    st.session_state.user_name = ""
+if "login_error" not in st.session_state:
+    st.session_state.login_error = ""
 
 # Transfer pending preset query into the widget key BEFORE the widget renders
 if "_pending_query" in st.session_state:
     st.session_state["query_input"] = st.session_state.pop("_pending_query")
+
+
+# ── Login credentials (from secrets or demo fallback) ─────────────────────────
+def _get_demo_users() -> dict:
+    try:
+        return dict(st.secrets["demo_users"])
+    except Exception:
+        return {"admin": "trustlayer2026", "demo": "demo123", "judge": "hackathon2026"}
+
+
+DYNAMIC_LOGO_SVG = """
+<svg width="64" height="64" viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg" class="logo-svg">
+  <!-- Pulse ring -->
+  <circle cx="32" cy="32" r="28" fill="none" stroke="#0066FF" stroke-width="2" class="pulse-ring" opacity="0.5"/>
+  <!-- Shield body -->
+  <path d="M32 6 L54 15 L54 32 C54 44 43 54 32 58 C21 54 10 44 10 32 L10 15 Z"
+        fill="url(#shieldGrad)" stroke="#0066FF" stroke-width="1.5"/>
+  <!-- Scan line (clipped inside shield) -->
+  <clipPath id="shieldClip">
+    <path d="M32 6 L54 15 L54 32 C54 44 43 54 32 58 C21 54 10 44 10 32 L10 15 Z"/>
+  </clipPath>
+  <rect x="10" y="31" width="44" height="2" fill="#00D4FF" opacity="0.7"
+        class="scan-line" clip-path="url(#shieldClip)"/>
+  <!-- TL text -->
+  <text x="32" y="37" text-anchor="middle" font-family="Arial,sans-serif"
+        font-weight="900" font-size="16" fill="#ffffff" letter-spacing="1">TL</text>
+  <defs>
+    <linearGradient id="shieldGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%"   stop-color="#1E3A5F"/>
+      <stop offset="100%" stop-color="#0F172A"/>
+    </linearGradient>
+  </defs>
+</svg>
+"""
+
+LOGO_SMALL_SVG = """
+<svg width="36" height="36" viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg" class="logo-svg">
+  <path d="M32 6 L54 15 L54 32 C54 44 43 54 32 58 C21 54 10 44 10 32 L10 15 Z"
+        fill="url(#sg2)" stroke="#0066FF" stroke-width="1.5"/>
+  <text x="32" y="37" text-anchor="middle" font-family="Arial,sans-serif"
+        font-weight="900" font-size="16" fill="#ffffff" letter-spacing="1">TL</text>
+  <defs>
+    <linearGradient id="sg2" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%"   stop-color="#1E3A5F"/>
+      <stop offset="100%" stop-color="#0F172A"/>
+    </linearGradient>
+  </defs>
+</svg>
+"""
+
+
+# ── Login page ─────────────────────────────────────────────────────────────────
+if not st.session_state.authenticated:
+    st.markdown("""
+    <style>
+    #MainMenu, footer, header, [data-testid="stSidebar"] { display: none !important; }
+    .stApp { background: linear-gradient(135deg,#0F172A 0%,#0D2952 50%,#0F172A 100%) !important; }
+    </style>""", unsafe_allow_html=True)
+
+    # Centered login card (3-col layout trick)
+    _, mid, _ = st.columns([1, 1.4, 1])
+    with mid:
+        st.markdown("<br><br>", unsafe_allow_html=True)
+        st.markdown(
+            f"<div style='text-align:center;margin-bottom:8px'>{DYNAMIC_LOGO_SVG}</div>",
+            unsafe_allow_html=True,
+        )
+        st.markdown("<div class='login-title'>TrustLayer AI</div>", unsafe_allow_html=True)
+        st.markdown(
+            "<div class='login-sub'>Enterprise AI Reliability Platform<br>"
+            "Canada Hackathon 2026</div>",
+            unsafe_allow_html=True,
+        )
+
+        # SSO buttons (demo — auto-fill admin credentials)
+        ms_col, gg_col = st.columns(2)
+        with ms_col:
+            if st.button("🪟  Sign in with Microsoft", use_container_width=True):
+                st.session_state.authenticated = True
+                st.session_state.user_name = "Microsoft User"
+                st.session_state.login_error = ""
+                st.rerun()
+        with gg_col:
+            if st.button("🔵  Sign in with Google", use_container_width=True):
+                st.session_state.authenticated = True
+                st.session_state.user_name = "Google User"
+                st.session_state.login_error = ""
+                st.rerun()
+
+        st.markdown("<div class='divider-line'>or sign in with credentials</div>",
+                    unsafe_allow_html=True)
+
+        username = st.text_input("Username", placeholder="Enter your username", key="login_user")
+        password = st.text_input("Password", placeholder="Enter your password",
+                                 type="password", key="login_pass")
+
+        if st.session_state.login_error:
+            st.error(st.session_state.login_error)
+
+        if st.button("Sign In", type="primary", use_container_width=True):
+            users = _get_demo_users()
+            if username in users and users[username] == password:
+                st.session_state.authenticated = True
+                st.session_state.user_name = username
+                st.session_state.login_error = ""
+                st.rerun()
+            else:
+                st.session_state.login_error = "Invalid username or password."
+                st.rerun()
+
+        st.markdown("<br>", unsafe_allow_html=True)
+        st.markdown(
+            "<div style='text-align:center;color:#475569;font-size:.78rem'>"
+            "Demo accounts: <code>admin / trustlayer2026</code> &nbsp;|&nbsp; "
+            "<code>demo / demo123</code> &nbsp;|&nbsp; <code>judge / hackathon2026</code>"
+            "</div>",
+            unsafe_allow_html=True,
+        )
+
+    st.stop()  # Halt — don't render the main app until authenticated
 
 
 # ── Helper: get detector (cached per API key) ─────────────────────────────────
@@ -298,8 +483,30 @@ def generate_pdf(result, cv_result=None) -> bytes:
 # ══════════════════════════════════════════════════════════════════════════════
 
 with st.sidebar:
-    st.markdown("## 🛡️ TrustLayer AI")
-    st.markdown("*Enterprise AI Reliability Platform*")
+    st.markdown(
+        f"<div style='display:flex;align-items:center;gap:10px;margin-bottom:4px'>"
+        f"{LOGO_SMALL_SVG}"
+        f"<div><div style='font-weight:800;font-size:1.05rem;color:#1E293B'>TrustLayer AI</div>"
+        f"<div style='font-size:.75rem;color:#64748B'>Enterprise AI Reliability</div></div>"
+        f"</div>",
+        unsafe_allow_html=True,
+    )
+    # User info + logout
+    st.markdown(
+        f"<div style='background:#EFF6FF;border-radius:8px;padding:7px 10px;"
+        f"font-size:.82rem;color:#1D4ED8;display:flex;justify-content:space-between;"
+        f"align-items:center;margin-bottom:4px'>"
+        f"<span>👤 <strong>{st.session_state.user_name}</strong></span>"
+        f"</div>",
+        unsafe_allow_html=True,
+    )
+    if st.button("Sign Out", use_container_width=True):
+        st.session_state.authenticated = False
+        st.session_state.user_name = ""
+        st.session_state.history = []
+        st.session_state.last_result = None
+        st.session_state.last_cv_result = None
+        st.rerun()
     st.divider()
 
     # Anthropic API Key
@@ -373,15 +580,17 @@ with st.sidebar:
 # HEADER
 # ══════════════════════════════════════════════════════════════════════════════
 
-st.markdown("""
-<div class="app-header">
-  <div style="font-size:2.5rem">🛡️</div>
+st.markdown(
+    f"""<div class="app-header">
+  {DYNAMIC_LOGO_SVG}
   <div>
-    <div style="color:#fff;font-size:1.5rem;font-weight:800">TrustLayer AI</div>
-    <div style="color:#94A3B8;font-size:.95rem">Real-time hallucination detection powered by Claude · Canada Hackathon 2026</div>
+    <div style="color:#fff;font-size:1.5rem;font-weight:800;line-height:1.2">TrustLayer AI</div>
+    <div style="color:#94A3B8;font-size:.92rem">Real-time hallucination detection · Claude + GPT-4o · Canada Hackathon 2026</div>
+    <div style="color:#64748B;font-size:.78rem;margin-top:3px">Signed in as <strong style="color:#7DD3FC">{st.session_state.user_name}</strong></div>
   </div>
-</div>
-""", unsafe_allow_html=True)
+</div>""",
+    unsafe_allow_html=True,
+)
 
 
 # ══════════════════════════════════════════════════════════════════════════════
