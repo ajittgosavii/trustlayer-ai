@@ -184,6 +184,8 @@ if "blocked_responses" not in st.session_state:
     st.session_state.blocked_responses = []   # BLOCK items with what-user-saw record
 if "_queue_counter" not in st.session_state:
     st.session_state._queue_counter = 0
+if "_selected_flow_node" not in st.session_state:
+    st.session_state._selected_flow_node = None
 
 # Transfer pending preset query into the widget key BEFORE the widget renders
 if "_pending_query" in st.session_state:
@@ -1351,265 +1353,543 @@ with tab_batch:
 # TAB 4: ENTERPRISE FLOW SIMULATION
 # ─────────────────────────────────────────────────────────────────────────────
 with tab_enterprise:
-    st.markdown("#### 🏦 Enterprise Banking App — Full Middleware Simulation")
+    st.markdown("#### 🏦 Enterprise Banking App — Interactive Pipeline")
     st.markdown(
-        "This tab shows the **complete real-world flow**: a simulated banking chatbot generates "
-        "an unfiltered response, TrustLayer intercepts it, and the user receives either the "
-        "response, a review notice, or a safe fallback — depending on the decision."
+        "Click any stage in the pipeline to explore that persona's role, inputs, and outputs. "
+        "Run a query in **Live Detection** first to see the full flow come alive."
     )
 
-    # ── Flow architecture diagram ──────────────────────────────────────────
-    st.markdown("---")
     result_ent = st.session_state.get("last_result")
     action_ent = result_ent.action if result_ent else None
 
-    def _flow_node(label, sublabel, active=False, color="#1E293B", width="160px"):
+    # ── Helper: flow node HTML ─────────────────────────────────────────────
+    def _flow_node(label, sublabel, active=False, color="#1E293B", width="155px", selected=False):
         border = f"3px solid {color}" if active else "2px solid #E2E8F0"
-        bg = f"{color}18" if active else "#fff"
-        text_color = color if active else "#1E293B"
+        bg     = f"{color}28" if selected else (f"{color}14" if active else "#fff")
+        ring   = f"box-shadow:0 0 0 4px {color}40;" if selected else ""
+        text_color = color if active else "#94A3B8"
         return (
-            f"<div style='border:{border};background:{bg};border-radius:10px;"
-            f"padding:12px 8px;text-align:center;width:{width};flex-shrink:0'>"
-            f"<div style='font-weight:700;font-size:.9rem;color:{text_color}'>{label}</div>"
-            f"<div style='font-size:.75rem;color:#64748B;margin-top:3px'>{sublabel}</div>"
+            f"<div style='border:{border};background:{bg};border-radius:12px;"
+            f"padding:14px 8px;text-align:center;width:{width};flex-shrink:0;{ring}'>"
+            f"<div style='font-weight:700;font-size:.88rem;color:{text_color}'>{label}</div>"
+            f"<div style='font-size:.72rem;color:#64748B;margin-top:3px'>{sublabel}</div>"
             f"</div>"
         )
 
     def _arrow(label="", color="#94A3B8"):
         return (
             f"<div style='display:flex;flex-direction:column;align-items:center;"
-            f"justify-content:center;padding:0 4px;color:{color};font-size:.75rem'>"
-            f"<div style='color:{color}'>{label}</div>"
-            f"<div style='font-size:1.4rem;color:{color}'>→</div>"
+            f"justify-content:center;padding:0 2px;color:{color};font-size:.72rem;flex-shrink:0'>"
+            f"<span>{label}</span>"
+            f"<span style='font-size:1.3rem'>→</span>"
             f"</div>"
         )
 
-    node_colors = {
-        "PASS":  "#27AE60",
-        "FLAG":  "#F39C12",
-        "BLOCK": "#E74C3C",
-        None:    "#94A3B8",
-    }
-    nc = node_colors.get(action_ent, "#94A3B8")
-
-    flow_html = (
-        "<div style='display:flex;align-items:center;gap:4px;overflow-x:auto;"
-        "padding:20px 10px;background:#F8FAFC;border-radius:12px;margin:12px 0'>"
-        + _flow_node("👤 Customer", "Submits query", active=bool(result_ent), color="#0066FF")
-        + _arrow("query")
-        + _flow_node("🏦 Banking App", "Enterprise chatbot", active=bool(result_ent), color="#0066FF")
-        + _arrow("sends to")
-        + _flow_node("🤖 Claude LLM", "Generates response", active=bool(result_ent), color="#7B2D8B")
-        + _arrow("raw response")
-        + _flow_node("🛡️ TrustLayer", "Intercepts + scores", active=bool(result_ent), color="#0066FF", width="140px")
-        + _arrow("decision", nc)
-    )
+    node_colors = {"PASS": "#27AE60", "FLAG": "#F39C12", "BLOCK": "#E74C3C", None: "#94A3B8"}
+    nc          = node_colors.get(action_ent, "#94A3B8")
+    sel         = st.session_state._selected_flow_node
+    cv_result_ent = st.session_state.get("last_cv_result")
+    gpt4o_active  = bool(cv_result_ent and cv_result_ent.openai_result)
 
     if action_ent == "PASS":
-        flow_html += _flow_node("✅ Customer", "Receives response", active=True, color="#27AE60")
+        outcome_lbl, outcome_sub, outcome_col = "✅ Customer", "Receives response", "#27AE60"
     elif action_ent == "FLAG":
-        flow_html += _flow_node("⚠️ Review Queue", "Human reviewer", active=True, color="#F39C12")
+        outcome_lbl, outcome_sub, outcome_col = "⚠️ Review Queue", "Human reviewer", "#F39C12"
     elif action_ent == "BLOCK":
-        flow_html += _flow_node("🚫 Safe Fallback", "User sees fallback", active=True, color="#E74C3C")
+        outcome_lbl, outcome_sub, outcome_col = "🚫 Safe Fallback", "User sees fallback", "#E74C3C"
     else:
-        flow_html += _flow_node("⬜ Outcome", "Run a query first", active=False, color="#94A3B8")
+        outcome_lbl, outcome_sub, outcome_col = "⬜ Outcome", "Run a query first", "#94A3B8"
 
-    flow_html += "</div>"
+    flow_html = (
+        "<div style='display:flex;align-items:center;gap:2px;overflow-x:auto;"
+        "padding:20px 12px;background:#F8FAFC;border-radius:14px;margin:12px 0'>"
+        + _flow_node("👤 Customer",    "Submits query",           active=True,              color="#0066FF", selected=(sel=="customer"))
+        + _arrow("query")
+        + _flow_node("🏦 Banking App", "Enterprise chatbot",      active=bool(result_ent),  color="#0066FF", selected=(sel=="bankapp"))
+        + _arrow("sends to")
+        + _flow_node("🤖 Claude LLM",  "Generates response",      active=bool(result_ent),  color="#7B2D8B", selected=(sel=="claude"))
+        + _arrow("analyze")
+        + _flow_node("🟢 GPT-4o",      "Cross-validates",         active=gpt4o_active,      color="#10A37F", selected=(sel=="gpt4o"), width="130px")
+        + _arrow("consensus", nc)
+        + _flow_node("🛡️ TrustLayer",  "Final decision",          active=bool(result_ent),  color="#0066FF", selected=(sel=="trustlayer"), width="135px")
+        + _arrow("decision", nc)
+        + _flow_node(outcome_lbl,       outcome_sub,               active=bool(result_ent),  color=outcome_col, selected=(sel=="outcome"))
+        + "</div>"
+    )
     st.markdown(flow_html, unsafe_allow_html=True)
 
-    if not result_ent:
-        st.info("Run a query in **Live Detection** to see the full flow visualised here.")
-    else:
+    # ── Stage selector buttons ─────────────────────────────────────────────
+    st.markdown("<div style='font-size:.85rem;color:#64748B;margin-bottom:6px'>👇 Click a stage to explore:</div>", unsafe_allow_html=True)
+    pb1, pb2, pb3, pb4, pb5, pb6 = st.columns(6)
+    with pb1:
+        if st.button("👤 Customer", use_container_width=True, key="btn_ent_customer"):
+            st.session_state._selected_flow_node = "customer"
+            st.rerun()
+    with pb2:
+        if st.button("🏦 Banking App", use_container_width=True, key="btn_ent_bankapp"):
+            st.session_state._selected_flow_node = "bankapp"
+            st.rerun()
+    with pb3:
+        if st.button("🤖 Claude LLM", use_container_width=True, key="btn_ent_claude"):
+            st.session_state._selected_flow_node = "claude"
+            st.rerun()
+    with pb4:
+        if st.button("🟢 GPT-4o", use_container_width=True, key="btn_ent_gpt4o"):
+            st.session_state._selected_flow_node = "gpt4o"
+            st.rerun()
+    with pb5:
+        if st.button("🛡️ TrustLayer", use_container_width=True, key="btn_ent_trustlayer"):
+            st.session_state._selected_flow_node = "trustlayer"
+            st.rerun()
+    with pb6:
+        if st.button("⬜ Outcome", use_container_width=True, key="btn_ent_outcome"):
+            st.session_state._selected_flow_node = "outcome"
+            st.rerun()
+
+    # ── Persona detail panel ───────────────────────────────────────────────
+    if sel:
         st.markdown("---")
-        # ── Three-panel view ──────────────────────────────────────────────
-        col_bank, col_tl, col_user = st.columns(3)
 
-        # Panel 1 — Banking App (unfiltered AI response)
-        with col_bank:
-            st.markdown(
-                "<div style='background:#EFF6FF;border:2px solid #BFDBFE;border-radius:10px;"
-                "padding:14px;margin-bottom:8px'>"
-                "<div style='font-weight:700;color:#1D4ED8;margin-bottom:6px'>"
-                "🏦 Banking Chatbot — Raw Response</div>"
-                "<div style='font-size:.78rem;color:#3B82F6;margin-bottom:8px'>"
-                "⚡ Generated by Claude LLM (unfiltered)</div>"
-                "</div>",
-                unsafe_allow_html=True,
-            )
-            st.markdown(
-                f"<div style='background:#fff;border:1px solid #DBEAFE;border-radius:8px;"
-                f"padding:12px;font-size:.9rem;line-height:1.6;max-height:220px;overflow-y:auto'>"
-                f"{result_ent.llm_response}"
-                f"</div>",
-                unsafe_allow_html=True,
-            )
-            st.caption(f"Query: {result_ent.query[:100]}{'…' if len(result_ent.query)>100 else ''}")
-
-        # Panel 2 — TrustLayer intercept scores
-        with col_tl:
-            st.markdown(
-                "<div style='background:#F5F3FF;border:2px solid #C4B5FD;border-radius:10px;"
-                "padding:14px;margin-bottom:8px'>"
-                "<div style='font-weight:700;color:#6D28D9;margin-bottom:6px'>"
-                "🛡️ TrustLayer Intercept</div>"
-                "<div style='font-size:.78rem;color:#7C3AED;margin-bottom:8px'>"
-                "8 detection algorithms · grounding verified</div>"
-                "</div>",
-                unsafe_allow_html=True,
-            )
-            badge_cls = f"badge-{result_ent.action.lower()}"
-            st.markdown(
-                f"<div style='text-align:center;margin:8px 0'>"
-                f"<div class='{badge_cls}'>{result_ent.action_emoji} {result_ent.action}</div>"
-                f"</div>",
-                unsafe_allow_html=True,
-            )
-            m1, m2 = st.columns(2)
-            m1.metric("Confidence", f"{result_ent.confidence_score:.0f}%")
-            m2.metric("Risk Score", f"{result_ent.risk_score:.0f}")
-            if result_ent.issues:
-                st.markdown("**Issues caught:**")
-                for issue in result_ent.issues[:3]:
-                    st.markdown(
-                        f"<div class='issue-high' style='font-size:.8rem'>⚠️ {issue[:80]}</div>",
-                        unsafe_allow_html=True,
-                    )
-                if len(result_ent.issues) > 3:
-                    st.caption(f"+{len(result_ent.issues)-3} more issues")
-            else:
-                st.success("No issues detected")
-
-        # Panel 3 — What the user actually sees
-        with col_user:
-            if action_ent == "PASS":
+        # ── CUSTOMER ──────────────────────────────────────────────────────
+        if sel == "customer":
+            p_col, d_col = st.columns([1, 3])
+            with p_col:
                 st.markdown(
-                    "<div style='background:#F0FDF4;border:2px solid #86EFAC;border-radius:10px;"
-                    "padding:14px;margin-bottom:8px'>"
-                    "<div style='font-weight:700;color:#166534;margin-bottom:6px'>"
-                    "✅ What the Customer Receives</div>"
-                    "<div style='font-size:.78rem;color:#16A34A;margin-bottom:8px'>"
-                    "Response passed — delivered as-is</div>"
-                    "</div>",
-                    unsafe_allow_html=True,
-                )
-                st.markdown(
-                    f"<div style='background:#fff;border:1px solid #DCFCE7;border-radius:8px;"
-                    f"padding:12px;font-size:.9rem;line-height:1.6;max-height:220px;overflow-y:auto'>"
-                    f"{result_ent.llm_response}"
-                    f"</div>",
-                    unsafe_allow_html=True,
-                )
-                st.caption("✅ No intervention. Customer received the AI response directly.")
-
-            elif action_ent == "FLAG":
-                st.markdown(
-                    "<div style='background:#FFFBEB;border:2px solid #FCD34D;border-radius:10px;"
-                    "padding:14px;margin-bottom:8px'>"
-                    "<div style='font-weight:700;color:#92400E;margin-bottom:6px'>"
-                    "⚠️ What the Customer Receives</div>"
-                    "<div style='font-size:.78rem;color:#B45309;margin-bottom:8px'>"
-                    "Routed to human review — customer sees holding message</div>"
-                    "</div>",
-                    unsafe_allow_html=True,
-                )
-                st.markdown(
-                    "<div style='background:#fff;border:1px solid #FEF3C7;border-radius:8px;"
-                    "padding:12px;font-size:.9rem;font-style:italic;color:#92400E'>"
-                    "\"Thank you for your question. One of our specialists is reviewing "
-                    "this for you and will respond shortly with accurate information.\""
-                    "</div>",
-                    unsafe_allow_html=True,
-                )
-                st.caption("⚠️ Response sent to Review Queue. See the 👥 Review Queue tab.")
-
-            elif action_ent == "BLOCK":
-                st.markdown(
-                    "<div style='background:#FFF1F2;border:2px solid #FECDD3;border-radius:10px;"
-                    "padding:14px;margin-bottom:8px'>"
-                    "<div style='font-weight:700;color:#991B1B;margin-bottom:6px'>"
-                    "🚫 What the Customer Receives</div>"
-                    "<div style='font-size:.78rem;color:#DC2626;margin-bottom:8px'>"
-                    "AI response BLOCKED — safe fallback delivered instead</div>"
-                    "</div>",
-                    unsafe_allow_html=True,
-                )
-                st.markdown(
-                    "<div style='background:#fff;border:1px solid #FECDD3;border-radius:8px;"
-                    "padding:12px;font-size:.9rem;font-style:italic;color:#991B1B'>"
-                    "\"I'm sorry, I'm not able to provide specific details on that right now. "
-                    "Please speak with one of our advisors who can give you accurate, "
-                    "personalised guidance based on your situation.\""
-                    "</div>",
-                    unsafe_allow_html=True,
-                )
-                st.caption("🚫 Original AI response never reached the customer. Logged for audit.")
-
-        # ── Blocked response comparison (only for BLOCK) ──────────────────
-        if action_ent == "BLOCK" and st.session_state.blocked_responses:
-            st.markdown("---")
-            st.markdown("#### 🔍 What Was Blocked vs What Customer Saw")
-            latest_block = st.session_state.blocked_responses[-1]
-            b_left, b_right = st.columns(2)
-            with b_left:
-                st.markdown(
-                    "<div style='background:#FEE2E2;border-left:4px solid #E74C3C;"
-                    "padding:10px 14px;border-radius:8px;margin-bottom:8px'>"
-                    "<strong style='color:#991B1B'>❌ AI Generated (BLOCKED — never shown)</strong>"
-                    "</div>",
-                    unsafe_allow_html=True,
-                )
-                st.markdown(
-                    f"<div class='response-box' style='border-color:#FECDD3'>"
-                    f"{latest_block['ai_response']}"
-                    f"</div>",
-                    unsafe_allow_html=True,
-                )
-                if latest_block["issues"]:
-                    st.markdown("**Why it was blocked:**")
-                    for iss in latest_block["issues"][:4]:
-                        st.markdown(f"<div class='issue-high'>⛔ {iss}</div>", unsafe_allow_html=True)
-            with b_right:
-                st.markdown(
-                    "<div style='background:#DCFCE7;border-left:4px solid #22C55E;"
-                    "padding:10px 14px;border-radius:8px;margin-bottom:8px'>"
-                    "<strong style='color:#166534'>✅ Safe Fallback (what customer received)</strong>"
-                    "</div>",
-                    unsafe_allow_html=True,
-                )
-                st.markdown(
-                    f"<div class='response-box' style='border-color:#DCFCE7;font-style:italic'>"
-                    f"{latest_block['user_saw']}"
-                    f"</div>",
-                    unsafe_allow_html=True,
-                )
-                st.markdown(
-                    "<div style='background:#F0FDF4;border:1px solid #86EFAC;border-radius:8px;"
-                    "padding:10px;margin-top:8px'>"
-                    "<div style='font-size:.85rem;color:#166534'>"
-                    "✔ Customer protected<br>"
-                    "✔ Harmful content never delivered<br>"
-                    "✔ Interaction logged for compliance audit"
+                    "<div style='background:#EFF6FF;border:2px solid #BFDBFE;border-radius:16px;"
+                    "padding:24px 16px;text-align:center;height:100%'>"
+                    "<div style='font-size:3rem'>👤</div>"
+                    "<div style='font-weight:700;color:#1D4ED8;margin-top:8px;font-size:1.1rem'>Customer</div>"
+                    "<div style='font-size:.78rem;color:#3B82F6;margin-top:4px'>Banking App User</div>"
+                    "<hr style='border-color:#BFDBFE;margin:14px 0'>"
+                    "<div style='font-size:.78rem;color:#475569;text-align:left;line-height:1.8'>"
+                    "<b>Role:</b> End user of the banking chatbot<br>"
+                    "<b>Sees:</b> A clean chat interface<br>"
+                    "<b>Unaware of:</b> TrustLayer running silently<br>"
+                    "<b>Protected from:</b> Hallucinated financial advice"
                     "</div></div>",
                     unsafe_allow_html=True,
                 )
-
-        # ── All blocked responses history ─────────────────────────────────
-        if st.session_state.blocked_responses:
-            with st.expander(f"📋 All Blocked Responses This Session ({len(st.session_state.blocked_responses)})"):
-                for i, br in enumerate(reversed(st.session_state.blocked_responses)):
+            with d_col:
+                if result_ent:
+                    st.markdown("##### 💬 What the customer asked:")
                     st.markdown(
-                        f"<div style='background:#FFF1F2;border:1px solid #FECDD3;"
-                        f"border-radius:8px;padding:10px;margin-bottom:8px'>"
-                        f"<div style='font-weight:700;color:#991B1B'>🚫 BLOCK #{len(st.session_state.blocked_responses)-i} "
-                        f"· {br['industry']} · {br['time']}</div>"
-                        f"<div style='font-size:.85rem;color:#64748B;margin:4px 0'>"
-                        f"<strong>Query:</strong> {br['query'][:120]}{'…' if len(br['query'])>120 else ''}</div>"
-                        f"<div style='font-size:.82rem;color:#991B1B'>"
-                        f"Confidence: {br['confidence']}% · Risk: {br['risk']} · "
-                        f"Issues: {len(br['issues'])}</div>"
+                        f"<div style='background:#fff;border:2px solid #BFDBFE;border-radius:10px;"
+                        f"padding:16px;font-size:1rem;line-height:1.6;margin-bottom:16px'>"
+                        f"💬 &nbsp;<em>\"{result_ent.query}\"</em>"
                         f"</div>",
                         unsafe_allow_html=True,
                     )
+                    st.markdown("##### 📨 What the customer received:")
+                    if action_ent == "PASS":
+                        st.markdown(
+                            f"<div style='background:#F0FDF4;border:2px solid #86EFAC;border-radius:10px;"
+                            f"padding:16px;font-size:.93rem;line-height:1.7'>"
+                            f"✅ <b>Response delivered as-is</b><br><br>{result_ent.llm_response}"
+                            f"</div>",
+                            unsafe_allow_html=True,
+                        )
+                        st.caption("No intervention — TrustLayer cleared the response.")
+                    elif action_ent == "FLAG":
+                        st.markdown(
+                            "<div style='background:#FFFBEB;border:2px solid #FCD34D;border-radius:10px;"
+                            "padding:16px;font-size:.95rem;font-style:italic;color:#92400E'>"
+                            "⏳ \"Thank you for your question. One of our specialists is reviewing "
+                            "this for you and will respond shortly with accurate information.\""
+                            "</div>",
+                            unsafe_allow_html=True,
+                        )
+                        st.caption("Customer is waiting. The flagged response is in the 👥 Review Queue tab.")
+                    elif action_ent == "BLOCK":
+                        st.markdown(
+                            "<div style='background:#FFF1F2;border:2px solid #FECDD3;border-radius:10px;"
+                            "padding:16px;font-size:.95rem;font-style:italic;color:#991B1B'>"
+                            "🛡️ \"I'm sorry, I'm not able to provide specific details on that right now. "
+                            "Please speak with one of our advisors who can give you accurate, "
+                            "personalised guidance based on your situation.\""
+                            "</div>",
+                            unsafe_allow_html=True,
+                        )
+                        st.caption("Safe fallback delivered. The harmful AI response was never shown.")
+                else:
+                    st.info("Run a query in **Live Detection** to see the customer's journey here.")
+
+        # ── BANKING APP ───────────────────────────────────────────────────
+        elif sel == "bankapp":
+            p_col, d_col = st.columns([1, 3])
+            with p_col:
+                industry_label = result_ent.industry if result_ent else "BFSI Banking"
+                rf_label       = str(get_industry(result_ent.industry)["risk_factor"]) + "×" if result_ent else "1.3×"
+                st.markdown(
+                    f"<div style='background:#EFF6FF;border:2px solid #BFDBFE;border-radius:16px;"
+                    f"padding:24px 16px;text-align:center;height:100%'>"
+                    f"<div style='font-size:3rem'>🏦</div>"
+                    f"<div style='font-weight:700;color:#1D4ED8;margin-top:8px;font-size:1.1rem'>Banking App</div>"
+                    f"<div style='font-size:.78rem;color:#3B82F6;margin-top:4px'>Enterprise Chatbot Layer</div>"
+                    f"<hr style='border-color:#BFDBFE;margin:14px 0'>"
+                    f"<div style='font-size:.78rem;color:#475569;text-align:left;line-height:1.8'>"
+                    f"<b>Role:</b> Enterprise application layer<br>"
+                    f"<b>Routes queries to:</b> Claude LLM<br>"
+                    f"<b>Integrated with:</b> TrustLayer middleware<br>"
+                    f"<b>Industry:</b> {industry_label}<br>"
+                    f"<b>Risk multiplier:</b> {rf_label}"
+                    f"</div></div>",
+                    unsafe_allow_html=True,
+                )
+            with d_col:
+                if result_ent:
+                    st.markdown("##### 📤 Query forwarded to Claude LLM:")
+                    st.markdown(
+                        f"<div style='background:#fff;border:2px solid #BFDBFE;border-radius:10px;"
+                        f"padding:16px;font-size:.95rem;line-height:1.6;margin-bottom:16px'>"
+                        f"📤 <em>\"{result_ent.query}\"</em>"
+                        f"</div>",
+                        unsafe_allow_html=True,
+                    )
+                    st.markdown("##### 📋 Enterprise grounding context sent to TrustLayer:")
+                    grounding_cfg = get_industry(result_ent.industry)
+                    ctx = grounding_cfg.get("grounding_context", "No grounding context configured.")
+                    st.markdown(
+                        f"<div style='background:#F8FAFC;border:1px solid #E2E8F0;border-radius:10px;"
+                        f"padding:14px;font-size:.84rem;line-height:1.65;max-height:200px;overflow-y:auto'>"
+                        f"📋 {ctx[:700]}{'…' if len(ctx) > 700 else ''}"
+                        f"</div>",
+                        unsafe_allow_html=True,
+                    )
+                    st.caption(
+                        f"Industry: {result_ent.industry} · "
+                        f"Risk factor: {grounding_cfg['risk_factor']}× · "
+                        f"TrustLayer processes EVERY response before delivery"
+                    )
+                else:
+                    st.info("Run a query in **Live Detection** to see the Banking App's role.")
+
+        # ── CLAUDE LLM ────────────────────────────────────────────────────
+        elif sel == "claude":
+            p_col, d_col = st.columns([1, 3])
+            with p_col:
+                proc = str(result_ent.processing_ms) + " ms" if result_ent and result_ent.processing_ms else "—"
+                st.markdown(
+                    f"<div style='background:#F5F3FF;border:2px solid #C4B5FD;border-radius:16px;"
+                    f"padding:24px 16px;text-align:center;height:100%'>"
+                    f"<div style='font-size:3rem'>🤖</div>"
+                    f"<div style='font-weight:700;color:#6D28D9;margin-top:8px;font-size:1.1rem'>Claude LLM</div>"
+                    f"<div style='font-size:.78rem;color:#7C3AED;margin-top:4px'>AI Response Generator</div>"
+                    f"<hr style='border-color:#C4B5FD;margin:14px 0'>"
+                    f"<div style='font-size:.78rem;color:#475569;text-align:left;line-height:1.8'>"
+                    f"<b>Model:</b> claude-sonnet-4-5<br>"
+                    f"<b>Role:</b> Generates raw AI response<br>"
+                    f"<b>Risk:</b> Can hallucinate facts &amp; stats<br>"
+                    f"<b>Output:</b> Goes to TrustLayer next<br>"
+                    f"<b>Processing:</b> {proc}"
+                    f"</div></div>",
+                    unsafe_allow_html=True,
+                )
+            with d_col:
+                if result_ent:
+                    st.markdown("##### ⚡ Raw LLM output — unfiltered, before TrustLayer:")
+                    st.markdown(
+                        f"<div style='background:#fff;border:2px solid #C4B5FD;border-radius:10px;"
+                        f"padding:16px;font-size:.9rem;line-height:1.7;max-height:270px;overflow-y:auto'>"
+                        f"{result_ent.llm_response}"
+                        f"</div>",
+                        unsafe_allow_html=True,
+                    )
+                    st.markdown("---")
+                    m1, m2, m3 = st.columns(3)
+                    m1.metric("Characters", len(result_ent.llm_response))
+                    m2.metric("Words", len(result_ent.llm_response.split()))
+                    m3.metric("TrustLayer verdict", result_ent.action)
+                    if action_ent == "PASS":
+                        st.success("✅ This response passed all TrustLayer checks and was delivered to the customer.")
+                    elif action_ent == "FLAG":
+                        st.warning("⚠️ This response was flagged — sent for human review. Customer sees a holding message.")
+                    elif action_ent == "BLOCK":
+                        st.error("🚫 This response was BLOCKED — it was never delivered. Customer received a safe fallback.")
+                else:
+                    st.info("Run a query in **Live Detection** to see Claude's raw output here.")
+
+        # ── GPT-4o ────────────────────────────────────────────────────────
+        elif sel == "gpt4o":
+            p_col, d_col = st.columns([1, 3])
+            with p_col:
+                gpt_action = cv_result_ent.openai_result.action if gpt4o_active else "—"
+                gpt_conf   = f"{cv_result_ent.openai_result.confidence_score:.0f}%" if gpt4o_active else "—"
+                gpt_risk   = f"{cv_result_ent.openai_result.risk_score:.0f}" if gpt4o_active else "—"
+                st.markdown(
+                    f"<div style='background:#F0FFF8;border:2px solid #6EE7B7;border-radius:16px;"
+                    f"padding:24px 16px;text-align:center;height:100%'>"
+                    f"<div style='font-size:3rem'>🟢</div>"
+                    f"<div style='font-weight:700;color:#10A37F;margin-top:8px;font-size:1.1rem'>GPT-4o</div>"
+                    f"<div style='font-size:.78rem;color:#059669;margin-top:4px'>OpenAI Cross-Validator</div>"
+                    f"<hr style='border-color:#6EE7B7;margin:14px 0'>"
+                    f"<div style='font-size:.78rem;color:#475569;text-align:left;line-height:1.8'>"
+                    f"<b>Model:</b> gpt-4o<br>"
+                    f"<b>Role:</b> Independent second opinion<br>"
+                    f"<b>Analyzes:</b> Same response as Claude<br>"
+                    f"<b>Verdict:</b> {gpt_action}<br>"
+                    f"<b>Confidence:</b> {gpt_conf}<br>"
+                    f"<b>Risk:</b> {gpt_risk}"
+                    f"</div></div>",
+                    unsafe_allow_html=True,
+                )
+            with d_col:
+                if gpt4o_active:
+                    cv = cv_result_ent
+                    gpt = cv.openai_result
+
+                    # Agreement banner
+                    agree_pct = cv.agreement_score * 100
+                    agree_color = "#27AE60" if agree_pct >= 80 else "#F39C12" if agree_pct >= 65 else "#E74C3C"
+                    agree_label = "Strong agreement" if agree_pct >= 80 else "Partial agreement" if agree_pct >= 65 else "Disagreement — escalated"
+                    st.markdown(
+                        f"<div style='background:{agree_color}18;border:2px solid {agree_color};"
+                        f"border-radius:10px;padding:14px;margin-bottom:16px;text-align:center'>"
+                        f"<div style='font-size:1.5rem;font-weight:800;color:{agree_color}'>"
+                        f"Agreement: {agree_pct:.0f}%</div>"
+                        f"<div style='font-size:.85rem;color:{agree_color};margin-top:4px'>{agree_label}</div>"
+                        f"</div>",
+                        unsafe_allow_html=True,
+                    )
+
+                    # Claude vs GPT-4o verdict comparison
+                    c_left, c_right = st.columns(2)
+                    with c_left:
+                        claude_badge = f"badge-{result_ent.action.lower()}"
+                        st.markdown(
+                            f"<div style='background:#F5F3FF;border:2px solid #C4B5FD;"
+                            f"border-radius:10px;padding:14px;text-align:center'>"
+                            f"<div style='font-weight:700;color:#6D28D9;margin-bottom:8px'>🤖 Claude</div>"
+                            f"<div class='{claude_badge}'>{result_ent.action_emoji} {result_ent.action}</div>"
+                            f"<div style='margin-top:8px;font-size:.82rem;color:#64748B'>"
+                            f"Confidence: {result_ent.confidence_score:.0f}%<br>"
+                            f"Risk: {result_ent.risk_score:.0f}</div>"
+                            f"</div>",
+                            unsafe_allow_html=True,
+                        )
+                    with c_right:
+                        gpt_badge = f"badge-{gpt.action.lower()}"
+                        st.markdown(
+                            f"<div style='background:#F0FFF8;border:2px solid #6EE7B7;"
+                            f"border-radius:10px;padding:14px;text-align:center'>"
+                            f"<div style='font-weight:700;color:#10A37F;margin-bottom:8px'>🟢 GPT-4o</div>"
+                            f"<div class='{gpt_badge}'>{gpt.action_emoji if hasattr(gpt,'action_emoji') else gpt.action} {gpt.action}</div>"
+                            f"<div style='margin-top:8px;font-size:.82rem;color:#64748B'>"
+                            f"Confidence: {gpt.confidence_score:.0f}%<br>"
+                            f"Risk: {gpt.risk_score:.0f}</div>"
+                            f"</div>",
+                            unsafe_allow_html=True,
+                        )
+
+                    # Score comparison bars
+                    if gpt.scores:
+                        st.markdown("##### 📊 Detection Score Comparison — Claude vs GPT-4o:")
+                        claude_scores = result_ent.scores.as_dict()
+                        gpt_scores    = gpt.scores.as_dict()
+                        for technique in claude_scores:
+                            c_val = claude_scores[technique]
+                            g_val = gpt_scores.get(technique, 0)
+                            diff  = abs(c_val - g_val)
+                            diff_color = "#E74C3C" if diff > 20 else "#F39C12" if diff > 10 else "#27AE60"
+                            st.markdown(
+                                f"<div style='margin:5px 0'>"
+                                f"<div style='display:flex;justify-content:space-between;font-size:.8rem;margin-bottom:2px'>"
+                                f"<span style='color:#1E293B'>{technique}</span>"
+                                f"<span style='color:{diff_color};font-weight:600'>Δ {diff:.0f}%</span></div>"
+                                f"<div style='display:flex;gap:3px;align-items:center'>"
+                                f"<div style='font-size:.7rem;color:#7B2D8B;width:28px'>Claude</div>"
+                                f"<div style='flex:1;background:#E2E8F0;border-radius:3px;height:6px'>"
+                                f"<div style='background:#7B2D8B;width:{c_val:.0f}%;height:6px;border-radius:3px'></div></div>"
+                                f"<div style='font-size:.7rem;color:#7B2D8B;width:32px;text-align:right'>{c_val:.0f}%</div></div>"
+                                f"<div style='display:flex;gap:3px;align-items:center;margin-top:2px'>"
+                                f"<div style='font-size:.7rem;color:#10A37F;width:28px'>GPT-4o</div>"
+                                f"<div style='flex:1;background:#E2E8F0;border-radius:3px;height:6px'>"
+                                f"<div style='background:#10A37F;width:{g_val:.0f}%;height:6px;border-radius:3px'></div></div>"
+                                f"<div style='font-size:.7rem;color:#10A37F;width:32px;text-align:right'>{g_val:.0f}%</div></div>"
+                                f"</div>",
+                                unsafe_allow_html=True,
+                            )
+
+                    # GPT-4o explanation
+                    if gpt.explanation:
+                        st.markdown("##### 💬 GPT-4o Explanation:")
+                        st.markdown(
+                            f"<div style='background:#F0FFF8;border:1px solid #6EE7B7;border-radius:10px;"
+                            f"padding:14px;font-size:.9rem;line-height:1.6;color:#065F46'>"
+                            f"{gpt.explanation}</div>",
+                            unsafe_allow_html=True,
+                        )
+                else:
+                    st.info(
+                        "GPT-4o cross-validation was not run for this query. "
+                        "Enable **Cross-validate with GPT-4o** in the sidebar (requires OpenAI API key) "
+                        "and run a new query to see GPT-4o's independent analysis here."
+                    )
+
+        # ── TRUSTLAYER ────────────────────────────────────────────────────
+        elif sel == "trustlayer":
+            p_col, d_col = st.columns([1, 3])
+            with p_col:
+                proc = str(result_ent.processing_ms) + " ms" if result_ent and result_ent.processing_ms else "—"
+                st.markdown(
+                    f"<div style='background:#EFF6FF;border:2px solid #0066FF;border-radius:16px;"
+                    f"padding:24px 16px;text-align:center;height:100%'>"
+                    f"<div style='font-size:3rem'>🛡️</div>"
+                    f"<div style='font-weight:700;color:#0066FF;margin-top:8px;font-size:1.1rem'>TrustLayer</div>"
+                    f"<div style='font-size:.78rem;color:#3B82F6;margin-top:4px'>AI Safety Middleware</div>"
+                    f"<hr style='border-color:#BFDBFE;margin:14px 0'>"
+                    f"<div style='font-size:.78rem;color:#475569;text-align:left;line-height:1.8'>"
+                    f"<b>Techniques:</b> 8 detection algorithms<br>"
+                    f"<b>Outputs:</b> PASS / FLAG / BLOCK<br>"
+                    f"<b>Cross-validated:</b> Claude + GPT-4o<br>"
+                    f"<b>Processing time:</b> {proc}"
+                    f"</div></div>",
+                    unsafe_allow_html=True,
+                )
+            with d_col:
+                if result_ent:
+                    badge_cls = f"badge-{result_ent.action.lower()}"
+                    st.markdown(
+                        f"<div style='text-align:center;margin-bottom:16px'>"
+                        f"<div class='{badge_cls}' style='font-size:1.2rem;padding:10px 28px'>"
+                        f"{result_ent.action_emoji} {result_ent.action} &nbsp;·&nbsp; "
+                        f"Confidence {result_ent.confidence_score:.0f}% &nbsp;·&nbsp; "
+                        f"Risk Score {result_ent.risk_score:.0f}"
+                        f"</div></div>",
+                        unsafe_allow_html=True,
+                    )
+                    st.markdown("##### 📊 8 Detection Technique Scores:")
+                    for technique, score_val in result_ent.scores.as_dict().items():
+                        bar_color = "#27AE60" if score_val >= 75 else "#F39C12" if score_val >= 50 else "#E74C3C"
+                        st.markdown(
+                            f"<div style='margin:5px 0'>"
+                            f"<div style='display:flex;justify-content:space-between;font-size:.82rem;margin-bottom:2px'>"
+                            f"<span style='color:#1E293B'>{technique}</span>"
+                            f"<span style='font-weight:700;color:{bar_color}'>{score_val:.0f}%</span></div>"
+                            f"<div style='background:#E2E8F0;border-radius:4px;height:7px'>"
+                            f"<div style='background:{bar_color};width:{score_val:.0f}%;height:7px;border-radius:4px'></div>"
+                            f"</div></div>",
+                            unsafe_allow_html=True,
+                        )
+                    if result_ent.issues:
+                        st.markdown("##### ⚠️ Issues detected:")
+                        for iss in result_ent.issues[:5]:
+                            st.markdown(f"<div class='issue-high'>⚠️ {iss}</div>", unsafe_allow_html=True)
+                        if len(result_ent.issues) > 5:
+                            st.caption(f"+{len(result_ent.issues)-5} more issues")
+                    else:
+                        st.success("No issues detected — all claims appear accurate.")
+                else:
+                    st.info("Run a query in **Live Detection** to see TrustLayer's full analysis.")
+
+        # ── OUTCOME ───────────────────────────────────────────────────────
+        elif sel == "outcome":
+            if action_ent == "PASS":
+                icon, title, sub, border_c, bg_c = "✅", "PASS", "Delivered safely", "#27AE60", "#F0FDF4"
+            elif action_ent == "FLAG":
+                icon, title, sub, border_c, bg_c = "⚠️", "FLAG", "Human review queue", "#F39C12", "#FFFBEB"
+            elif action_ent == "BLOCK":
+                icon, title, sub, border_c, bg_c = "🚫", "BLOCK", "Safe fallback sent", "#E74C3C", "#FFF1F2"
+            else:
+                icon, title, sub, border_c, bg_c = "⬜", "Pending", "Run a query first", "#94A3B8", "#F8FAFC"
+
+            p_col, d_col = st.columns([1, 3])
+            with p_col:
+                st.markdown(
+                    f"<div style='background:{bg_c};border:2px solid {border_c};border-radius:16px;"
+                    f"padding:24px 16px;text-align:center;height:100%'>"
+                    f"<div style='font-size:3rem'>{icon}</div>"
+                    f"<div style='font-weight:800;color:{border_c};margin-top:8px;font-size:1.3rem'>{title}</div>"
+                    f"<div style='font-size:.78rem;color:#64748B;margin-top:4px'>{sub}</div>"
+                    f"</div>",
+                    unsafe_allow_html=True,
+                )
+            with d_col:
+                if action_ent == "PASS":
+                    st.success("Response cleared all 8 detection checks. Delivered to the customer without modification.")
+                    st.markdown(
+                        f"<div style='background:#fff;border:2px solid #86EFAC;border-radius:10px;"
+                        f"padding:16px;font-size:.9rem;line-height:1.7;max-height:260px;overflow-y:auto'>"
+                        f"{result_ent.llm_response}</div>",
+                        unsafe_allow_html=True,
+                    )
+                elif action_ent == "FLAG":
+                    st.warning("Response scored borderline — routed to human review. Customer sees a holding message.")
+                    st.markdown(
+                        "<div style='background:#FFFBEB;border:2px solid #FCD34D;border-radius:10px;padding:16px'>"
+                        "<b>📋 Review Queue entry created. A compliance reviewer will:</b><br><br>"
+                        "&nbsp;&nbsp;• <b>Approve</b> → deliver the original AI response<br>"
+                        "&nbsp;&nbsp;• <b>Reject</b> → send safe fallback instead<br>"
+                        "&nbsp;&nbsp;• <b>Escalate</b> → raise to senior compliance officer<br><br>"
+                        "See the <b>👥 Review Queue</b> tab for the queued item."
+                        "</div>",
+                        unsafe_allow_html=True,
+                    )
+                elif action_ent == "BLOCK":
+                    st.error("Response scored below threshold — blocked. Customer received a safe fallback.")
+                    if st.session_state.blocked_responses:
+                        latest = st.session_state.blocked_responses[-1]
+                        b_left, b_right = st.columns(2)
+                        with b_left:
+                            st.markdown(
+                                "<div style='background:#FEE2E2;border-left:4px solid #E74C3C;"
+                                "padding:10px;border-radius:8px;margin-bottom:8px'>"
+                                "<b style='color:#991B1B'>❌ AI Generated (BLOCKED — never shown)</b></div>",
+                                unsafe_allow_html=True,
+                            )
+                            st.markdown(
+                                f"<div class='response-box' style='border-color:#FECDD3'>"
+                                f"{latest['ai_response']}</div>",
+                                unsafe_allow_html=True,
+                            )
+                            if latest["issues"]:
+                                st.markdown("**Why it was blocked:**")
+                                for iss in latest["issues"][:4]:
+                                    st.markdown(f"<div class='issue-high'>⛔ {iss}</div>", unsafe_allow_html=True)
+                        with b_right:
+                            st.markdown(
+                                "<div style='background:#DCFCE7;border-left:4px solid #22C55E;"
+                                "padding:10px;border-radius:8px;margin-bottom:8px'>"
+                                "<b style='color:#166534'>✅ Safe Fallback (what customer received)</b></div>",
+                                unsafe_allow_html=True,
+                            )
+                            st.markdown(
+                                f"<div class='response-box' style='border-color:#DCFCE7;font-style:italic'>"
+                                f"{latest['user_saw']}</div>",
+                                unsafe_allow_html=True,
+                            )
+                            st.markdown(
+                                "<div style='background:#F0FDF4;border:1px solid #86EFAC;"
+                                "border-radius:8px;padding:10px;margin-top:8px;font-size:.85rem;color:#166534'>"
+                                "✔ Customer protected<br>✔ Harmful content never delivered<br>"
+                                "✔ Interaction logged for compliance audit</div>",
+                                unsafe_allow_html=True,
+                            )
+                else:
+                    st.info("Run a query in **Live Detection** to see the outcome here.")
+    else:
+        if result_ent:
+            st.info("👆 Click any stage above to explore that persona's view of the pipeline.")
+        else:
+            st.info("Run a query in **Live Detection** then click a stage above to explore the pipeline.")
+
+    # ── All blocked responses history ─────────────────────────────────────
+    if st.session_state.blocked_responses:
+        st.markdown("---")
+        with st.expander(f"📋 All Blocked Responses This Session ({len(st.session_state.blocked_responses)})"):
+            for i, br in enumerate(reversed(st.session_state.blocked_responses)):
+                st.markdown(
+                    f"<div style='background:#FFF1F2;border:1px solid #FECDD3;"
+                    f"border-radius:8px;padding:10px;margin-bottom:8px'>"
+                    f"<div style='font-weight:700;color:#991B1B'>🚫 BLOCK #{len(st.session_state.blocked_responses)-i} "
+                    f"· {br['industry']} · {br['time']}</div>"
+                    f"<div style='font-size:.85rem;color:#64748B;margin:4px 0'>"
+                    f"<strong>Query:</strong> {br['query'][:120]}{'…' if len(br['query'])>120 else ''}</div>"
+                    f"<div style='font-size:.82rem;color:#991B1B'>"
+                    f"Confidence: {br['confidence']}% · Risk: {br['risk']} · "
+                    f"Issues: {len(br['issues'])}</div>"
+                    f"</div>",
+                    unsafe_allow_html=True,
+                )
 
 
 # ─────────────────────────────────────────────────────────────────────────────
