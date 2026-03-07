@@ -118,11 +118,26 @@ class OpenAIAnalyzer:
         )
         raw_text = resp.choices[0].message.content
 
-        # Strip markdown fences just in case
-        raw_text = re.sub(r"^```(?:json)?\s*", "", raw_text.strip(), flags=re.MULTILINE)
-        raw_text = re.sub(r"\s*```$", "", raw_text.strip(), flags=re.MULTILINE)
+        # Parse JSON — strip fences, retry once on failure
+        def _clean_and_parse(text: str) -> dict:
+            text = re.sub(r"^```(?:json)?\s*", "", text.strip(), flags=re.MULTILINE)
+            text = re.sub(r"\s*```$", "", text.strip(), flags=re.MULTILINE)
+            return json.loads(text)
 
-        data = json.loads(raw_text)
+        try:
+            data = _clean_and_parse(raw_text)
+        except json.JSONDecodeError:
+            retry = self.client.chat.completions.create(
+                model=OPENAI_MODEL,
+                max_tokens=1500,
+                messages=[
+                    {"role": "user",      "content": detection_prompt},
+                    {"role": "assistant", "content": raw_text},
+                    {"role": "user",      "content": "Return ONLY the JSON object. No markdown, no explanation, no code fences."},
+                ],
+                response_format={"type": "json_object"},
+            )
+            data = _clean_and_parse(retry.choices[0].message.content)
 
         scores = TechniqueScores(
             semantic_entropy    = float(data.get("semantic_entropy",    0.7)),

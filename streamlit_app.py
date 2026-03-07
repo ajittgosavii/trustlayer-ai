@@ -5,10 +5,13 @@ Canada Hackathon 2026
 """
 
 from __future__ import annotations
+import io
 import json
 import time
 from datetime import datetime
 from typing import Optional
+
+from fpdf import FPDF
 
 import pandas as pd
 import plotly.graph_objects as go
@@ -182,6 +185,114 @@ def technique_chart(scores_dict: dict) -> go.Figure:
     return fig
 
 
+# ── Helper: PDF report generator ─────────────────────────────────────────────
+def generate_pdf(result, cv_result=None) -> bytes:
+    pdf = FPDF()
+    pdf.set_auto_page_break(auto=True, margin=15)
+    pdf.add_page()
+    pdf.set_margins(15, 15, 15)
+
+    # Header
+    pdf.set_fill_color(15, 23, 42)
+    pdf.rect(0, 0, 210, 28, "F")
+    pdf.set_font("Helvetica", "B", 16)
+    pdf.set_text_color(255, 255, 255)
+    pdf.set_xy(15, 8)
+    pdf.cell(0, 10, "TrustLayer AI - Analysis Report", ln=True)
+    pdf.set_font("Helvetica", "", 9)
+    pdf.set_xy(15, 19)
+    pdf.cell(0, 6, f"Generated: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}  |  Canada Hackathon 2026", ln=True)
+    pdf.set_text_color(30, 41, 59)
+    pdf.ln(6)
+
+    # Decision banner
+    action_colors = {"PASS": (220, 252, 231), "FLAG": (254, 249, 195), "BLOCK": (254, 226, 226)}
+    r, g, b = action_colors.get(result.action, (241, 245, 249))
+    pdf.set_fill_color(r, g, b)
+    pdf.set_font("Helvetica", "B", 13)
+    pdf.cell(0, 12, f"Decision: {result.action}  |  Confidence: {result.confidence_score:.1f}%  |  Risk: {result.risk_score:.1f}/100", ln=True, fill=True)
+    pdf.ln(2)
+
+    # Query & Industry
+    pdf.set_font("Helvetica", "B", 10)
+    pdf.cell(0, 7, "Query", ln=True)
+    pdf.set_font("Helvetica", "", 9)
+    pdf.multi_cell(0, 5, result.query)
+    pdf.ln(3)
+    pdf.set_font("Helvetica", "B", 10)
+    pdf.cell(40, 7, "Industry:")
+    pdf.set_font("Helvetica", "", 10)
+    pdf.cell(0, 7, result.industry, ln=True)
+    pdf.ln(2)
+
+    # Scores table
+    pdf.set_font("Helvetica", "B", 10)
+    pdf.cell(0, 7, "Detection Technique Scores", ln=True)
+    pdf.set_font("Helvetica", "", 9)
+    scores = result.scores.as_dict()
+    col_w = 90
+    for i, (k, v) in enumerate(scores.items()):
+        if i % 2 == 0:
+            pdf.set_x(15)
+        label = k.replace("_", " ").title()
+        bar_fill = int(v * 1.8)
+        pdf.cell(col_w, 6, f"{label}: {v:.0f}%")
+        if i % 2 == 1:
+            pdf.ln()
+    pdf.ln(4)
+
+    # Explanation
+    pdf.set_font("Helvetica", "B", 10)
+    pdf.cell(0, 7, "TrustLayer Explanation", ln=True)
+    pdf.set_font("Helvetica", "", 9)
+    pdf.multi_cell(0, 5, result.explanation or "—")
+    pdf.ln(3)
+
+    # Issues
+    if result.issues or result.fabrication_indicators:
+        pdf.set_font("Helvetica", "B", 10)
+        pdf.cell(0, 7, "Issues Detected", ln=True)
+        pdf.set_font("Helvetica", "", 9)
+        for issue in result.issues:
+            pdf.multi_cell(0, 5, f"  - {issue}")
+        for fi in result.fabrication_indicators:
+            pdf.multi_cell(0, 5, f"  - [Fabrication] {fi}")
+        pdf.ln(2)
+
+    # Claims
+    if result.claims:
+        pdf.set_font("Helvetica", "B", 10)
+        pdf.cell(0, 7, f"Extracted Claims ({len(result.claims)})", ln=True)
+        pdf.set_font("Helvetica", "", 9)
+        for c in result.claims[:10]:  # cap at 10 to avoid overflow
+            pdf.multi_cell(0, 5, f"  [{c.risk.upper()}] {c.text}")
+        pdf.ln(2)
+
+    # Cross-validation section
+    if cv_result:
+        pdf.add_page()
+        pdf.set_font("Helvetica", "B", 12)
+        pdf.cell(0, 8, "Claude + GPT-4o Cross-Validation", ln=True)
+        pdf.set_font("Helvetica", "", 10)
+        pdf.cell(0, 6, f"Agreement Score: {cv_result.agreement_pct}%  ({cv_result.agreement_label})", ln=True)
+        pdf.cell(0, 6, f"Consensus Decision: {cv_result.consensus_action}  |  Consensus Confidence: {cv_result.consensus_confidence:.1f}%", ln=True)
+        pdf.ln(2)
+        pdf.set_font("Helvetica", "B", 10)
+        pdf.cell(0, 6, "GPT-4o Result", ln=True)
+        pdf.set_font("Helvetica", "", 9)
+        pdf.cell(0, 5, f"Action: {cv_result.openai_result.action}  |  Confidence: {cv_result.openai_result.confidence_score:.1f}%  |  Risk: {cv_result.openai_result.risk_score:.1f}", ln=True)
+        pdf.multi_cell(0, 5, f"Explanation: {cv_result.openai_result.explanation or '—'}")
+        pdf.ln(2)
+        if cv_result.disagreement_signals:
+            pdf.set_font("Helvetica", "B", 10)
+            pdf.cell(0, 6, "Disagreement Signals", ln=True)
+            pdf.set_font("Helvetica", "", 9)
+            for sig in cv_result.disagreement_signals:
+                pdf.multi_cell(0, 5, f"  - {sig}")
+
+    return bytes(pdf.output())
+
+
 # ══════════════════════════════════════════════════════════════════════════════
 # SIDEBAR
 # ══════════════════════════════════════════════════════════════════════════════
@@ -277,9 +388,10 @@ st.markdown("""
 # TABS
 # ══════════════════════════════════════════════════════════════════════════════
 
-tab_detect, tab_history, tab_howto = st.tabs([
+tab_detect, tab_history, tab_batch, tab_howto = st.tabs([
     "🔍  Live Detection",
     "📊  Session History",
+    "🚀  Batch Test",
     "📖  How It Works",
 ])
 
@@ -313,6 +425,21 @@ with tab_detect:
         )
         if selected_label != "— select —":
             chosen = next(s for s in scenarios if s["label"] == selected_label)
+            # Enhancement 1: show expected outcome badge
+            if selected_label.startswith("✅"):
+                st.markdown(
+                    "<div style='background:#DCFCE7;color:#166534;border-radius:8px;"
+                    "padding:6px 10px;font-size:.82rem;font-weight:600;margin-bottom:6px'>"
+                    "Expected outcome: <strong>PASS</strong> — high confidence, low risk</div>",
+                    unsafe_allow_html=True,
+                )
+            elif selected_label.startswith("⚠️"):
+                st.markdown(
+                    "<div style='background:#FEF9C3;color:#854D0E;border-radius:8px;"
+                    "padding:6px 10px;font-size:.82rem;font-weight:600;margin-bottom:6px'>"
+                    "Expected outcome: <strong>FLAG / BLOCK</strong> — hallucination risk</div>",
+                    unsafe_allow_html=True,
+                )
             if chosen["query"] and st.button("Load →", use_container_width=True):
                 st.session_state["_pending_query"] = chosen["query"]
                 st.rerun()
@@ -495,7 +622,7 @@ with tab_detect:
             )
 
         with claude_col:
-            st.markdown("**Claude (Sonnet)**")
+            st.markdown("**Score Comparison: Claude vs GPT-4o**")
             claude_scores = cv_result.claude_result.scores.as_dict()
             gpt_scores    = cv_result.openai_result.scores.as_dict()
             labels = list(claude_scores.keys())
@@ -526,6 +653,33 @@ with tab_detect:
                 legend=dict(orientation="h", y=1.1),
             )
             st.plotly_chart(fig_cv, use_container_width=True)
+
+            # Enhancement 2: per-technique delta table
+            with st.expander("Delta Table — technique-by-technique divergence"):
+                delta_rows = []
+                for k in labels:
+                    c_val = claude_scores[k]
+                    g_val = gpt_scores.get(k, 0)
+                    diff  = c_val - g_val
+                    delta_rows.append({
+                        "Technique":  k.replace("_", " ").title(),
+                        "Claude %":   f"{c_val:.0f}%",
+                        "GPT-4o %":   f"{g_val:.0f}%",
+                        "Delta":      f"{diff:+.0f}%",
+                        "Agreement":  "✅ OK" if abs(diff) <= 15 else "⚠️ Diverge",
+                    })
+                df_delta = pd.DataFrame(delta_rows)
+
+                def color_delta(val):
+                    if "Diverge" in str(val): return "background-color:#FEF9C3;color:#854D0E;font-weight:600"
+                    if "OK" in str(val):      return "background-color:#DCFCE7;color:#166534"
+                    return ""
+
+                st.dataframe(
+                    df_delta.style.applymap(color_delta, subset=["Agreement"]),
+                    use_container_width=True,
+                    hide_index=True,
+                )
 
         with gpt_col:
             st.markdown("**GPT-4o (OpenAI)**")
@@ -700,13 +854,29 @@ with tab_detect:
             }
             st.json(raw_output)
 
-        # Download result
-        st.download_button(
-            "⬇️  Download Result JSON",
-            data=json.dumps(raw_output, indent=2),
-            file_name=f"trustlayer_{result.industry.replace(' ','_')}_{result.timestamp.strftime('%H%M%S')}.json",
-            mime="application/json",
-        )
+        # Enhancement 5: PDF + JSON download buttons side by side
+        dl_col1, dl_col2 = st.columns(2)
+        with dl_col1:
+            st.download_button(
+                "⬇️  Download Result JSON",
+                data=json.dumps(raw_output, indent=2),
+                file_name=f"trustlayer_{result.industry.replace(' ','_')}_{result.timestamp.strftime('%H%M%S')}.json",
+                mime="application/json",
+                use_container_width=True,
+            )
+        with dl_col2:
+            cv_for_pdf = st.session_state.get("last_cv_result")
+            try:
+                pdf_bytes = generate_pdf(result, cv_for_pdf)
+                st.download_button(
+                    "📄  Download PDF Report",
+                    data=pdf_bytes,
+                    file_name=f"trustlayer_{result.industry.replace(' ','_')}_{result.timestamp.strftime('%H%M%S')}.pdf",
+                    mime="application/pdf",
+                    use_container_width=True,
+                )
+            except Exception:
+                pass  # PDF unavailable silently
 
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -777,7 +947,137 @@ with tab_history:
 
 
 # ─────────────────────────────────────────────────────────────────────────────
-# TAB 3: HOW IT WORKS
+# TAB 3: BATCH TEST
+# ─────────────────────────────────────────────────────────────────────────────
+with tab_batch:
+    st.markdown("#### Batch Test — Run All Hallucination-Risk Scenarios")
+    st.markdown(
+        "Runs every **⚠️ Hallucination Risk** scenario across all industry modules "
+        "in a single click. Compare PASS / FLAG / BLOCK outcomes side by side."
+    )
+
+    if not api_key:
+        st.warning("Enter your Anthropic API key in the sidebar to use batch testing.")
+    else:
+        # Build scenario list
+        batch_scenarios = []
+        for ind_name, ind_cfg in INDUSTRIES.items():
+            for sc in ind_cfg.get("scenarios", []):
+                if sc["label"].startswith("⚠️") and sc.get("query"):
+                    batch_scenarios.append({
+                        "industry": ind_name,
+                        "label":    sc["label"],
+                        "query":    sc["query"],
+                    })
+
+        st.info(f"{len(batch_scenarios)} hallucination-risk scenarios across {len(INDUSTRIES)} industries")
+
+        run_batch = st.button(
+            "🚀  Run All Hallucination-Risk Scenarios",
+            type="primary",
+            use_container_width=False,
+            disabled=not api_key,
+        )
+
+        if run_batch:
+            detector_b = get_detector(api_key)
+            batch_results = []
+            progress_bar = st.progress(0, text="Starting batch run...")
+
+            for i, sc in enumerate(batch_scenarios):
+                progress_bar.progress(
+                    (i) / len(batch_scenarios),
+                    text=f"Running: {sc['industry']} — {sc['label'][:50]}...",
+                )
+                try:
+                    ind_cfg_b = get_industry(sc["industry"])
+                    req_b = AnalysisRequest(
+                        query=sc["query"],
+                        industry=sc["industry"],
+                        context=ind_cfg_b.get("grounding_context") or None,
+                        self_consistency_check=False,
+                    )
+                    llm_resp_b = detector_b.generate_response(req_b)
+                    res_b = detector_b.analyze(req_b, llm_resp_b)
+                    batch_results.append({
+                        "Industry":   sc["industry"],
+                        "Scenario":   sc["label"].replace("⚠️ ", ""),
+                        "Action":     res_b.action,
+                        "Confidence": round(res_b.confidence_score, 1),
+                        "Risk":       round(res_b.risk_score, 1),
+                        "Issues":     len(res_b.issues),
+                        "Latency ms": res_b.processing_ms,
+                    })
+                except Exception as e:
+                    batch_results.append({
+                        "Industry":   sc["industry"],
+                        "Scenario":   sc["label"].replace("⚠️ ", ""),
+                        "Action":     "ERROR",
+                        "Confidence": 0,
+                        "Risk":       0,
+                        "Issues":     0,
+                        "Latency ms": 0,
+                    })
+
+            progress_bar.progress(1.0, text="Batch complete!")
+            st.session_state["batch_results"] = batch_results
+
+        # Show results
+        if "batch_results" in st.session_state and st.session_state.batch_results:
+            br = st.session_state.batch_results
+            df_batch = pd.DataFrame(br)
+
+            # Summary metrics
+            b1, b2, b3, b4 = st.columns(4)
+            b1.metric("Scenarios Run",  len(df_batch))
+            b2.metric("BLOCK",  int((df_batch["Action"] == "BLOCK").sum()))
+            b3.metric("FLAG",   int((df_batch["Action"] == "FLAG").sum()))
+            b4.metric("PASS",   int((df_batch["Action"] == "PASS").sum()))
+
+            st.markdown("---")
+
+            def color_batch_action(val):
+                if val == "BLOCK": return "background-color:#FEE2E2;color:#991B1B;font-weight:700"
+                if val == "FLAG":  return "background-color:#FEF9C3;color:#854D0E;font-weight:700"
+                if val == "PASS":  return "background-color:#DCFCE7;color:#166534;font-weight:700"
+                return "background-color:#F1F5F9;color:#64748B"
+
+            st.dataframe(
+                df_batch.style.applymap(color_batch_action, subset=["Action"]),
+                use_container_width=True,
+                hide_index=True,
+            )
+
+            # Action distribution chart
+            action_counts = df_batch["Action"].value_counts().reset_index()
+            action_counts.columns = ["Action", "Count"]
+            color_seq = {"BLOCK": "#E74C3C", "FLAG": "#F39C12", "PASS": "#27AE60", "ERROR": "#94A3B8"}
+            fig_dist = go.Figure(go.Bar(
+                x=action_counts["Action"],
+                y=action_counts["Count"],
+                marker_color=[color_seq.get(a, "#94A3B8") for a in action_counts["Action"]],
+                text=action_counts["Count"],
+                textposition="outside",
+            ))
+            fig_dist.update_layout(
+                title="Action Distribution — Hallucination-Risk Scenarios",
+                height=260,
+                yaxis=dict(showgrid=False),
+                paper_bgcolor="rgba(0,0,0,0)",
+                plot_bgcolor="rgba(0,0,0,0)",
+            )
+            st.plotly_chart(fig_dist, use_container_width=True)
+
+            st.download_button(
+                "⬇️  Export Batch Results CSV",
+                data=df_batch.to_csv(index=False),
+                file_name="trustlayer_batch_results.csv",
+                mime="text/csv",
+            )
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# TAB 4: HOW IT WORKS
 # ─────────────────────────────────────────────────────────────────────────────
 with tab_howto:
     st.markdown("#### How TrustLayer AI Works")
