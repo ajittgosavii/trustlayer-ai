@@ -1,0 +1,279 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1100 820" width="1100" height="820" font-family="Segoe UI, Arial, sans-serif">
+  <defs>
+    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#0f1e3a;stop-opacity:1"/>
+      <stop offset="100%" style="stop-color:#1a2e52;stop-opacity:1"/>
+    </linearGradient>
+    <linearGradient id="stepGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:#2e75b6;stop-opacity:1"/>
+      <stop offset="100%" style="stop-color:#1f5c96;stop-opacity:1"/>
+    </linearGradient>
+    <linearGradient id="passGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:#00a651;stop-opacity:1"/>
+      <stop offset="100%" style="stop-color:#007a3d;stop-opacity:1"/>
+    </linearGradient>
+    <linearGradient id="flagGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:#e8a000;stop-opacity:1"/>
+      <stop offset="100%" style="stop-color:#b87800;stop-opacity:1"/>
+    </linearGradient>
+    <linearGradient id="blockGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:#cc2222;stop-opacity:1"/>
+      <stop offset="100%" style="stop-color:#991111;stop-opacity:1"/>
+    </linearGradient>
+    <filter id="glow">
+      <feGaussianBlur stdDeviation="3" result="blur"/>
+      <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+    <filter id="shadow">
+      <feDropShadow dx="2" dy="4" stdDeviation="4" flood-color="#000" flood-opacity="0.3"/>
+    </filter>
+    <marker id="arrow" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#4ea8de"/>
+    </marker>
+    <marker id="arrowGreen" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#00a651"/>
+    </marker>
+    <marker id="arrowAmber" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#e8a000"/>
+    </marker>
+    <marker id="arrowRed" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#cc2222"/>
+    </marker>
+  </defs>
+
+  <!-- Background -->
+  <rect width="1100" height="820" fill="url(#bgGrad)"/>
+  <rect x="0" y="0" width="1100" height="3" fill="#4ea8de"/>
+
+  <!-- Title -->
+  <text x="550" y="44" font-size="26" font-weight="bold" fill="#ffffff" text-anchor="middle">TrustLayer AI — End User Flow</text>
+  <text x="550" y="68" font-size="13" fill="#88aacc" text-anchor="middle">User journey from authentication to governed AI response</text>
+
+  <!-- ═══════════════════════════════════════════════════
+       LANE LABELS (left side)
+  ════════════════════════════════════════════════════ -->
+  <rect x="10" y="90" width="80" height="700" rx="6" fill="#0d1a2e" opacity="0.6"/>
+  <text x="50" y="300" font-size="11" fill="#4ea8de" text-anchor="middle" transform="rotate(-90,50,300)">USER</text>
+  <text x="50" y="530" font-size="11" fill="#e8a000" text-anchor="middle" transform="rotate(-90,50,530)">SYSTEM</text>
+
+  <line x1="10" y1="410" x2="90" y2="410" stroke="#2e3f5a" stroke-width="1" stroke-dasharray="4,3"/>
+  <line x1="90" y1="90" x2="90" y2="790" stroke="#2e3f5a" stroke-width="1"/>
+
+  <!-- ═══════════════════════════════════════════════════
+       STEP 1 — Login
+  ════════════════════════════════════════════════════ -->
+  <g filter="url(#shadow)">
+    <rect x="110" y="100" width="160" height="90" rx="10" fill="url(#stepGrad)"/>
+  </g>
+  <text x="190" y="128" font-size="12" font-weight="bold" fill="#fff" text-anchor="middle">① Login Screen</text>
+  <text x="190" y="146" font-size="10" fill="#cce0ff" text-anchor="middle">SSO / Username</text>
+  <text x="190" y="162" font-size="10" fill="#cce0ff" text-anchor="middle">+ Password</text>
+  <text x="190" y="178" font-size="10" fill="#aad4ff" text-anchor="middle">Animated Shield Logo</text>
+
+  <!-- Arrow 1→2 -->
+  <line x1="270" y1="145" x2="318" y2="145" stroke="#4ea8de" stroke-width="1.5" marker-end="url(#arrow)"/>
+  <text x="294" y="138" font-size="9" fill="#88aacc" text-anchor="middle">Valid creds</text>
+
+  <!-- STEP 2 — Auth Check -->
+  <g filter="url(#shadow)">
+    <rect x="322" y="108" width="130" height="74" rx="8" fill="#1a3a6a"/>
+    <polygon points="322,108 452,108 452,182 387,182 322,182" fill="none" stroke="#4ea8de" stroke-width="1.5"/>
+    <!-- diamond decision -->
+    <polygon points="387,108 452,145 387,182 322,145" fill="#1a3a6a" stroke="#4ea8de" stroke-width="1.5"/>
+  </g>
+  <text x="387" y="141" font-size="11" font-weight="bold" fill="#fff" text-anchor="middle">Auth</text>
+  <text x="387" y="157" font-size="11" font-weight="bold" fill="#fff" text-anchor="middle">Check</text>
+
+  <!-- Auth fail arrow (down) -->
+  <line x1="387" y1="182" x2="387" y2="225" stroke="#cc2222" stroke-width="1.5" marker-end="url(#arrowRed)"/>
+  <text x="400" y="210" font-size="9" fill="#cc2222">Fail</text>
+  <rect x="340" y="226" width="94" height="30" rx="6" fill="#3a0a0a"/>
+  <text x="387" y="245" font-size="10" fill="#ff6666" text-anchor="middle">Error Message</text>
+
+  <!-- Auth pass arrow -->
+  <line x1="452" y1="145" x2="506" y2="145" stroke="#00a651" stroke-width="1.5" marker-end="url(#arrowGreen)"/>
+  <text x="479" y="138" font-size="9" fill="#00a651" text-anchor="middle">Pass</text>
+
+  <!-- STEP 3 — Select Industry -->
+  <g filter="url(#shadow)">
+    <rect x="510" y="100" width="160" height="90" rx="10" fill="url(#stepGrad)"/>
+  </g>
+  <text x="590" y="128" font-size="12" font-weight="bold" fill="#fff" text-anchor="middle">② Select Industry</text>
+  <text x="590" y="146" font-size="10" fill="#cce0ff" text-anchor="middle">🏦 BFSI Banking</text>
+  <text x="590" y="162" font-size="10" fill="#cce0ff" text-anchor="middle">🏥 Healthcare  ⚖️ Legal</text>
+  <text x="590" y="178" font-size="10" fill="#cce0ff" text-anchor="middle">👥 HR  🤖 General</text>
+
+  <!-- Arrow 3→4 -->
+  <line x1="670" y1="145" x2="726" y2="145" stroke="#4ea8de" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+  <!-- STEP 4 — Enter Query -->
+  <g filter="url(#shadow)">
+    <rect x="730" y="100" width="160" height="90" rx="10" fill="url(#stepGrad)"/>
+  </g>
+  <text x="810" y="128" font-size="12" font-weight="bold" fill="#fff" text-anchor="middle">③ Enter Query</text>
+  <text x="810" y="146" font-size="10" fill="#cce0ff" text-anchor="middle">Load preset scenario</text>
+  <text x="810" y="162" font-size="10" fill="#cce0ff" text-anchor="middle">✅ High-confidence or</text>
+  <text x="810" y="178" font-size="10" fill="#cce0ff" text-anchor="middle">⚠️ Hallucination-risk</text>
+
+  <!-- Arrow down from Step 4 -->
+  <line x1="810" y1="190" x2="810" y2="240" stroke="#4ea8de" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+  <!-- ═══════════════════════════════════════════════════
+       DETECTION ROW (system lane)
+  ════════════════════════════════════════════════════ -->
+  <!-- STEP 5 — Claude generates response -->
+  <g filter="url(#shadow)">
+    <rect x="660" y="244" width="150" height="80" rx="10" fill="#1f3864"/>
+    <rect x="660" y="244" width="150" height="5" rx="3" fill="#f0a500"/>
+  </g>
+  <text x="735" y="274" font-size="11" font-weight="bold" fill="#fff" text-anchor="middle">④ Claude</text>
+  <text x="735" y="290" font-size="11" font-weight="bold" fill="#fff" text-anchor="middle">Generates Response</text>
+  <text x="735" y="310" font-size="9" fill="#aac0dd" text-anchor="middle">Industry system prompt</text>
+
+  <!-- Arrow: Claude → Detection -->
+  <line x1="735" y1="324" x2="735" y2="374" stroke="#4ea8de" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+  <!-- STEP 6 — Detection Engine -->
+  <g filter="url(#shadow)">
+    <rect x="560" y="378" width="500" height="100" rx="10" fill="#0d2040"/>
+    <rect x="560" y="378" width="500" height="5" rx="3" fill="#4ea8de"/>
+  </g>
+  <text x="810" y="406" font-size="13" font-weight="bold" fill="#4ea8de" text-anchor="middle">⑤ TrustLayer Detection Engine — 8 Techniques</text>
+  <!-- Technique pills -->
+  <rect x="572" y="418" width="108" height="22" rx="5" fill="#1a3a6a"/>
+  <text x="626" y="433" font-size="9" fill="#aac8ff" text-anchor="middle">Semantic Entropy 15%</text>
+  <rect x="688" y="418" width="108" height="22" rx="5" fill="#1a3a6a"/>
+  <text x="742" y="433" font-size="9" fill="#aac8ff" text-anchor="middle">Self-Consistency 20%</text>
+  <rect x="804" y="418" width="110" height="22" rx="5" fill="#1a3a6a"/>
+  <text x="859" y="433" font-size="9" fill="#aac8ff" text-anchor="middle">Source Verification 15%</text>
+  <rect x="922" y="418" width="126" height="22" rx="5" fill="#1a3a6a"/>
+  <text x="985" y="433" font-size="9" fill="#aac8ff" text-anchor="middle">Enterprise Grounding 25%</text>
+  <rect x="572" y="446" width="104" height="22" rx="5" fill="#1a3a6a"/>
+  <text x="624" y="461" font-size="9" fill="#aac8ff" text-anchor="middle">Claim Classify 10%</text>
+  <rect x="684" y="446" width="112" height="22" rx="5" fill="#1a3a6a"/>
+  <text x="740" y="461" font-size="9" fill="#aac8ff" text-anchor="middle">Pattern Recog. 5%</text>
+  <rect x="804" y="446" width="106" height="22" rx="5" fill="#1a3a6a"/>
+  <text x="857" y="461" font-size="9" fill="#aac8ff" text-anchor="middle">Temporal Cons. 5%</text>
+  <rect x="918" y="446" width="130" height="22" rx="5" fill="#1a3a6a"/>
+  <text x="983" y="461" font-size="9" fill="#aac8ff" text-anchor="middle">Numerical Validate 5%</text>
+
+  <!-- GPT4o cross-validation arrow -->
+  <line x1="560" y1="428" x2="500" y2="428" stroke="#e8a000" stroke-width="1.5" stroke-dasharray="6,3" marker-end="url(#arrowAmber)"/>
+  <g filter="url(#shadow)">
+    <rect x="330" y="378" width="162" height="100" rx="10" fill="#2a1a00"/>
+    <rect x="330" y="378" width="162" height="5" rx="3" fill="#e8a000"/>
+  </g>
+  <text x="411" y="406" font-size="11" font-weight="bold" fill="#e8a000" text-anchor="middle">⑥ GPT-4o</text>
+  <text x="411" y="422" font-size="11" font-weight="bold" fill="#e8a000" text-anchor="middle">Cross-Validation</text>
+  <text x="411" y="440" font-size="9" fill="#cc9900" text-anchor="middle">Independent analysis</text>
+  <text x="411" y="455" font-size="9" fill="#cc9900" text-anchor="middle">Agreement scoring</text>
+  <text x="411" y="470" font-size="9" fill="#776600" text-anchor="middle">(if OpenAI key present)</text>
+
+  <!-- Both → Policy Engine -->
+  <line x1="810" y1="478" x2="810" y2="528" stroke="#4ea8de" stroke-width="1.5" marker-end="url(#arrow)"/>
+  <line x1="411" y1="478" x2="411" y2="514" stroke="#e8a000" stroke-width="1.5" stroke-dasharray="5,3"/>
+  <path d="M411,514 Q411,530 560,530" stroke="#e8a000" stroke-width="1.5" stroke-dasharray="5,3" fill="none" marker-end="url(#arrowAmber)"/>
+
+  <!-- STEP 7 — Policy Engine -->
+  <g filter="url(#shadow)">
+    <rect x="620" y="532" width="380" height="70" rx="10" fill="#1a0a30"/>
+    <rect x="620" y="532" width="380" height="5" rx="3" fill="#9b59b6"/>
+  </g>
+  <text x="810" y="558" font-size="12" font-weight="bold" fill="#cc88ff" text-anchor="middle">⑦ Policy Engine</text>
+  <text x="810" y="574" font-size="10" fill="#aa66dd" text-anchor="middle">Weighted Confidence Score  ×  Industry Risk Multiplier</text>
+  <text x="810" y="590" font-size="10" fill="#aa66dd" text-anchor="middle">→  Emits: PASS / FLAG / BLOCK  (Python rule-based — not LLM)</text>
+
+  <!-- Policy → Outcomes -->
+  <line x1="810" y1="602" x2="810" y2="648" stroke="#9b59b6" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+  <!-- ═══════════════════════════════════════════════════
+       OUTCOMES ROW
+  ════════════════════════════════════════════════════ -->
+  <!-- PASS -->
+  <g filter="url(#shadow)">
+    <rect x="560" y="652" width="155" height="90" rx="10" fill="url(#passGrad)"/>
+  </g>
+  <text x="637" y="681" font-size="16" font-weight="bold" fill="#fff" text-anchor="middle">✅ PASS</text>
+  <text x="637" y="700" font-size="10" fill="#cfffdf" text-anchor="middle">Conf ≥ 75%  Risk &lt; 30</text>
+  <text x="637" y="716" font-size="10" fill="#cfffdf" text-anchor="middle">Response delivered</text>
+  <text x="637" y="732" font-size="10" fill="#cfffdf" text-anchor="middle">to user</text>
+
+  <!-- FLAG -->
+  <g filter="url(#shadow)">
+    <rect x="733" y="652" width="155" height="90" rx="10" fill="url(#flagGrad)"/>
+  </g>
+  <text x="810" y="681" font-size="16" font-weight="bold" fill="#fff" text-anchor="middle">⚠️ FLAG</text>
+  <text x="810" y="700" font-size="10" fill="#fff8cc" text-anchor="middle">Conf 50-74%  Risk 30-59</text>
+  <text x="810" y="716" font-size="10" fill="#fff8cc" text-anchor="middle">Routed to human</text>
+  <text x="810" y="732" font-size="10" fill="#fff8cc" text-anchor="middle">review queue</text>
+
+  <!-- BLOCK -->
+  <g filter="url(#shadow)">
+    <rect x="906" y="652" width="155" height="90" rx="10" fill="url(#blockGrad)"/>
+  </g>
+  <text x="983" y="681" font-size="16" font-weight="bold" fill="#fff" text-anchor="middle">🚫 BLOCK</text>
+  <text x="983" y="700" font-size="10" fill="#ffcccc" text-anchor="middle">Conf &lt; 50%  Risk ≥ 60</text>
+  <text x="983" y="716" font-size="10" fill="#ffcccc" text-anchor="middle">Blocked + fallback</text>
+  <text x="983" y="732" font-size="10" fill="#ffcccc" text-anchor="middle">message triggered</text>
+
+  <!-- Fan arrows from Policy → outcomes -->
+  <line x1="756" y1="648" x2="685" y2="652" stroke="#00a651" stroke-width="1.5" marker-end="url(#arrowGreen)"/>
+  <line x1="810" y1="648" x2="810" y2="652" stroke="#e8a000" stroke-width="1.5" marker-end="url(#arrowAmber)"/>
+  <line x1="864" y1="648" x2="935" y2="652" stroke="#cc2222" stroke-width="1.5" marker-end="url(#arrowRed)"/>
+
+  <!-- ═══════════════════════════════════════════════════
+       EXTRA ACTIONS (bottom-left)
+  ════════════════════════════════════════════════════ -->
+  <!-- Batch Test -->
+  <g filter="url(#shadow)">
+    <rect x="110" y="430" width="140" height="70" rx="10" fill="#1a2a4a"/>
+    <rect x="110" y="430" width="140" height="4" rx="2" fill="#4ea8de"/>
+  </g>
+  <text x="180" y="456" font-size="11" font-weight="bold" fill="#fff" text-anchor="middle">Batch Test</text>
+  <text x="180" y="472" font-size="10" fill="#aac0dd" text-anchor="middle">Run all ⚠️ scenarios</text>
+  <text x="180" y="488" font-size="10" fill="#aac0dd" text-anchor="middle">→ CSV export</text>
+
+  <!-- PDF Export -->
+  <g filter="url(#shadow)">
+    <rect x="110" y="520" width="140" height="70" rx="10" fill="#1a2a4a"/>
+    <rect x="110" y="520" width="140" height="4" rx="2" fill="#9b59b6"/>
+  </g>
+  <text x="180" y="546" font-size="11" font-weight="bold" fill="#fff" text-anchor="middle">PDF Export</text>
+  <text x="180" y="562" font-size="10" fill="#cc88ff" text-anchor="middle">Full report with scores</text>
+  <text x="180" y="578" font-size="10" fill="#cc88ff" text-anchor="middle">+ claim breakdown</text>
+
+  <!-- Session History -->
+  <g filter="url(#shadow)">
+    <rect x="110" y="610" width="140" height="70" rx="10" fill="#1a2a4a"/>
+    <rect x="110" y="610" width="140" height="4" rx="2" fill="#00a651"/>
+  </g>
+  <text x="180" y="636" font-size="11" font-weight="bold" fill="#fff" text-anchor="middle">Session History</text>
+  <text x="180" y="652" font-size="10" fill="#88ddaa" text-anchor="middle">View all prior queries</text>
+  <text x="180" y="668" font-size="10" fill="#88ddaa" text-anchor="middle">+ scores in session</text>
+
+  <!-- Dashed arrows from main flow to side actions -->
+  <line x1="590" y1="600" x2="255" y2="465" stroke="#4ea8de" stroke-width="1" stroke-dasharray="4,3" marker-end="url(#arrow)"/>
+  <line x1="590" y1="600" x2="255" y2="555" stroke="#9b59b6" stroke-width="1" stroke-dasharray="4,3" marker-end="url(#arrow)"/>
+  <line x1="590" y1="650" x2="255" y2="645" stroke="#00a651" stroke-width="1" stroke-dasharray="4,3" marker-end="url(#arrowGreen)"/>
+
+  <!-- Legend -->
+  <rect x="110" y="756" width="860" height="50" rx="8" fill="#0d1a2e" opacity="0.8"/>
+  <text x="140" y="776" font-size="10" fill="#88aacc">Legend:</text>
+  <rect x="190" y="765" width="14" height="10" rx="2" fill="url(#stepGrad)"/>
+  <text x="210" y="775" font-size="10" fill="#cce0ff">User Action</text>
+  <rect x="310" y="765" width="14" height="10" rx="2" fill="#0d2040"/>
+  <text x="330" y="775" font-size="10" fill="#4ea8de">System Process</text>
+  <rect x="450" y="765" width="14" height="10" rx="2" fill="#2a1a00"/>
+  <text x="470" y="775" font-size="10" fill="#e8a000">Cross-Validation (optional)</text>
+  <rect x="650" y="765" width="14" height="10" rx="2" fill="url(#passGrad)"/>
+  <text x="670" y="775" font-size="10" fill="#00a651">PASS</text>
+  <rect x="720" y="765" width="14" height="10" rx="2" fill="url(#flagGrad)"/>
+  <text x="740" y="775" font-size="10" fill="#e8a000">FLAG</text>
+  <rect x="790" y="765" width="14" height="10" rx="2" fill="url(#blockGrad)"/>
+  <text x="810" y="775" font-size="10" fill="#cc2222">BLOCK</text>
+
+  <text x="140" y="796" font-size="10" fill="#88aacc">---</text>
+  <text x="160" y="796" font-size="10" fill="#88aacc">Dashed = optional / async path</text>
+  <text x="400" y="796" font-size="10" fill="#88aacc">Solid = primary flow</text>
+  <text x="560" y="796" font-size="10" fill="#88aacc">◆ = Decision point</text>
+</svg>

@@ -1,0 +1,318 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 860" width="1200" height="860" font-family="Segoe UI, Arial, sans-serif">
+  <defs>
+    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#0a1628"/>
+      <stop offset="100%" style="stop-color:#142240"/>
+    </linearGradient>
+    <linearGradient id="clientGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:#2980b9"/>
+      <stop offset="100%" style="stop-color:#1a5f87"/>
+    </linearGradient>
+    <linearGradient id="coreGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:#1f3864"/>
+      <stop offset="100%" style="stop-color:#142240"/>
+    </linearGradient>
+    <linearGradient id="aiGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:#7b2d8b"/>
+      <stop offset="100%" style="stop-color:#5a1f66"/>
+    </linearGradient>
+    <linearGradient id="extGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:#1e5631"/>
+      <stop offset="100%" style="stop-color:#144022"/>
+    </linearGradient>
+    <linearGradient id="storeGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:#7d3c00"/>
+      <stop offset="100%" style="stop-color:#5c2c00"/>
+    </linearGradient>
+    <filter id="shadow">
+      <feDropShadow dx="2" dy="4" stdDeviation="5" flood-color="#000" flood-opacity="0.4"/>
+    </filter>
+    <filter id="glow">
+      <feGaussianBlur stdDeviation="4" result="blur"/>
+      <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+    <marker id="arr" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#4ea8de"/>
+    </marker>
+    <marker id="arrW" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#aaaaaa"/>
+    </marker>
+    <marker id="arrG" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#00c853"/>
+    </marker>
+    <marker id="arrY" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#e8a000"/>
+    </marker>
+    <marker id="arrP" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#cc88ff"/>
+    </marker>
+  </defs>
+
+  <!-- Background -->
+  <rect width="1200" height="860" fill="url(#bgGrad)"/>
+  <rect x="0" y="0" width="1200" height="4" fill="#4ea8de"/>
+
+  <!-- Title -->
+  <text x="600" y="44" font-size="26" font-weight="bold" fill="#ffffff" text-anchor="middle">TrustLayer AI — High-Level Design (HLD)</text>
+  <text x="600" y="68" font-size="13" fill="#88aacc" text-anchor="middle">System architecture: zones, components, and integration boundaries</text>
+
+  <!-- ═════════════════════════════════════════════════════════
+       ZONE 1: CLIENT TIER
+  ═══════════════════════════════════════════════════════════ -->
+  <rect x="20" y="88" width="220" height="740" rx="14" fill="#0c1e38" stroke="#2980b9" stroke-width="1.5" stroke-dasharray="8,4"/>
+  <text x="130" y="112" font-size="12" font-weight="bold" fill="#2980b9" text-anchor="middle">CLIENT TIER</text>
+  <text x="130" y="128" font-size="10" fill="#5590b0" text-anchor="middle">Browser / Streamlit</text>
+
+  <!-- Browser Box -->
+  <g filter="url(#shadow)">
+    <rect x="36" y="140" width="188" height="90" rx="10" fill="url(#clientGrad)"/>
+  </g>
+  <text x="130" y="166" font-size="12" font-weight="bold" fill="#fff" text-anchor="middle">🌐 Browser</text>
+  <text x="130" y="184" font-size="10" fill="#cce0ff" text-anchor="middle">Streamlit Web UI</text>
+  <text x="130" y="200" font-size="10" fill="#cce0ff" text-anchor="middle">Plotly Charts</text>
+  <text x="130" y="216" font-size="10" fill="#aac8dd" text-anchor="middle">Responsive Layout</text>
+
+  <!-- Login module -->
+  <g filter="url(#shadow)">
+    <rect x="36" y="248" width="188" height="70" rx="10" fill="#1a3a5a"/>
+  </g>
+  <text x="130" y="272" font-size="11" font-weight="bold" fill="#fff" text-anchor="middle">🔐 Auth Module</text>
+  <text x="130" y="288" font-size="10" fill="#aac8dd" text-anchor="middle">SSO Login Screen</text>
+  <text x="130" y="304" font-size="10" fill="#aac8dd" text-anchor="middle">Session State Manager</text>
+
+  <!-- Tab Nav -->
+  <g filter="url(#shadow)">
+    <rect x="36" y="336" width="188" height="100" rx="10" fill="#1a3a5a"/>
+  </g>
+  <text x="130" y="360" font-size="11" font-weight="bold" fill="#fff" text-anchor="middle">📑 Tab Navigation</text>
+  <text x="130" y="378" font-size="10" fill="#aac8dd" text-anchor="middle">① Live Detection</text>
+  <text x="130" y="394" font-size="10" fill="#aac8dd" text-anchor="middle">② Session History</text>
+  <text x="130" y="410" font-size="10" fill="#aac8dd" text-anchor="middle">③ Batch Test</text>
+  <text x="130" y="426" font-size="10" fill="#aac8dd" text-anchor="middle">④ How It Works</text>
+
+  <!-- Report module -->
+  <g filter="url(#shadow)">
+    <rect x="36" y="454" width="188" height="70" rx="10" fill="#1a3a5a"/>
+  </g>
+  <text x="130" y="478" font-size="11" font-weight="bold" fill="#fff" text-anchor="middle">📄 PDF Export</text>
+  <text x="130" y="494" font-size="10" fill="#cc88ff" text-anchor="middle">fpdf2 report generator</text>
+  <text x="130" y="510" font-size="10" fill="#cc88ff" text-anchor="middle">Scores + claim breakdown</text>
+
+  <!-- ═════════════════════════════════════════════════════════
+       ZONE 2: APPLICATION TIER
+  ═══════════════════════════════════════════════════════════ -->
+  <rect x="264" y="88" width="488" height="740" rx="14" fill="#0d1d36" stroke="#4ea8de" stroke-width="2"/>
+  <text x="508" y="112" font-size="12" font-weight="bold" fill="#4ea8de" text-anchor="middle">APPLICATION TIER  —  TrustLayer Core</text>
+  <text x="508" y="128" font-size="10" fill="#5590b0" text-anchor="middle">streamlit_app.py + trustlayer/ package</text>
+
+  <!-- Industry Module Selector -->
+  <g filter="url(#shadow)">
+    <rect x="278" y="140" width="222" height="130" rx="10" fill="url(#coreGrad)" stroke="#4ea8de" stroke-width="1"/>
+  </g>
+  <text x="389" y="166" font-size="12" font-weight="bold" fill="#4ea8de" text-anchor="middle">🏭 Industry Module Selector</text>
+  <text x="389" y="186" font-size="10" fill="#cce0ff" text-anchor="middle">industries.py</text>
+  <rect x="290" y="196" width="98" height="20" rx="5" fill="#1a3a6a"/>
+  <text x="339" y="210" font-size="9" fill="#fff" text-anchor="middle">🏦 BFSI 1.3×</text>
+  <rect x="396" y="196" width="92" height="20" rx="5" fill="#1a3a6a"/>
+  <text x="442" y="210" font-size="9" fill="#fff" text-anchor="middle">🏥 Health 1.5×</text>
+  <rect x="290" y="222" width="92" height="20" rx="5" fill="#1a3a6a"/>
+  <text x="336" y="236" font-size="9" fill="#fff" text-anchor="middle">⚖️ Legal 1.4×</text>
+  <rect x="390" y="222" width="98" height="20" rx="5" fill="#1a3a6a"/>
+  <text x="439" y="236" font-size="9" fill="#fff" text-anchor="middle">👥 HR  1.1×</text>
+  <rect x="290" y="248" width="98" height="18" rx="5" fill="#112240"/>
+  <text x="339" y="261" font-size="9" fill="#aac8dd" text-anchor="middle">🤖 General 1.0×</text>
+
+  <!-- Grounding Store (in-app) -->
+  <g filter="url(#shadow)">
+    <rect x="516" y="140" width="222" height="130" rx="10" fill="url(#storeGrad)" stroke="#e8a000" stroke-width="1"/>
+  </g>
+  <text x="627" y="166" font-size="12" font-weight="bold" fill="#e8a000" text-anchor="middle">📚 Grounding Store</text>
+  <text x="627" y="184" font-size="10" fill="#ffdd99" text-anchor="middle">Authoritative reference data</text>
+  <text x="627" y="204" font-size="10" fill="#cc9900" text-anchor="middle">BFSI: 6.85% APR, LTV rules</text>
+  <text x="627" y="220" font-size="10" fill="#cc9900" text-anchor="middle">Health: FDA dosing, interactions</text>
+  <text x="627" y="236" font-size="10" fill="#cc9900" text-anchor="middle">Legal: Case law, jurisdictions</text>
+  <text x="627" y="252" font-size="10" fill="#cc9900" text-anchor="middle">HR: PTO accrual, overtime rules</text>
+
+  <!-- Detection Engine -->
+  <g filter="url(#shadow)">
+    <rect x="278" y="296" width="460" height="180" rx="10" fill="#0a1a30" stroke="#4ea8de" stroke-width="2"/>
+    <rect x="278" y="296" width="460" height="6" rx="4" fill="#4ea8de"/>
+  </g>
+  <text x="508" y="326" font-size="14" font-weight="bold" fill="#4ea8de" text-anchor="middle">⚙️ TrustLayerDetector  (detector.py)</text>
+  <text x="508" y="344" font-size="10" fill="#88aacc" text-anchor="middle">Claude Sonnet — structured JSON prompt — 8 parallel techniques</text>
+  <!-- Technique grid -->
+  <rect x="286" y="354" width="108" height="28" rx="5" fill="#1a3060"/>
+  <text x="340" y="372" font-size="9" fill="#aac8ff" text-anchor="middle">Semantic Entropy</text>
+  <rect x="402" y="354" width="108" height="28" rx="5" fill="#1a3060"/>
+  <text x="456" y="372" font-size="9" fill="#aac8ff" text-anchor="middle">Self-Consistency</text>
+  <rect x="518" y="354" width="108" height="28" rx="5" fill="#1a3060"/>
+  <text x="572" y="372" font-size="9" fill="#aac8ff" text-anchor="middle">Source Verification</text>
+  <rect x="634" y="354" width="96" height="28" rx="5" fill="#0d3040"/>
+  <text x="682" y="372" font-size="9" fill="#ffdd99" text-anchor="middle">Enterprise Ground.</text>
+  <rect x="286" y="390" width="108" height="28" rx="5" fill="#1a3060"/>
+  <text x="340" y="408" font-size="9" fill="#aac8ff" text-anchor="middle">Claim Classify</text>
+  <rect x="402" y="390" width="108" height="28" rx="5" fill="#1a3060"/>
+  <text x="456" y="408" font-size="9" fill="#aac8ff" text-anchor="middle">Pattern Recog.</text>
+  <rect x="518" y="390" width="108" height="28" rx="5" fill="#1a3060"/>
+  <text x="572" y="408" font-size="9" fill="#aac8ff" text-anchor="middle">Temporal Consist.</text>
+  <rect x="634" y="390" width="96" height="28" rx="5" fill="#1a3060"/>
+  <text x="682" y="408" font-size="9" fill="#aac8ff" text-anchor="middle">Numerical Valid.</text>
+  <!-- JSON retry note -->
+  <rect x="286" y="428" width="180" height="34" rx="6" fill="#0d1a2e"/>
+  <text x="376" y="444" font-size="9" fill="#ffaa44" text-anchor="middle">🔄 JSON Retry Logic</text>
+  <text x="376" y="458" font-size="9" fill="#886622" text-anchor="middle">Silent retry on parse failure</text>
+  <rect x="478" y="428" width="252" height="34" rx="6" fill="#0d1a2e"/>
+  <text x="604" y="444" font-size="9" fill="#aac8ff" text-anchor="middle">📊 Weighted Confidence Score</text>
+  <text x="604" y="458" font-size="9" fill="#556688" text-anchor="middle">Σ (score_i × weight_i) → 0–100%</text>
+
+  <!-- Policy Engine -->
+  <g filter="url(#shadow)">
+    <rect x="278" y="502" width="460" height="90" rx="10" fill="#1a0a30" stroke="#cc88ff" stroke-width="1.5"/>
+    <rect x="278" y="502" width="460" height="5" rx="3" fill="#9b59b6"/>
+  </g>
+  <text x="508" y="528" font-size="13" font-weight="bold" fill="#cc88ff" text-anchor="middle">🔀 Policy Engine  (Python rule-based)</text>
+  <text x="508" y="546" font-size="10" fill="#aa66dd" text-anchor="middle">confidence_score  ×  industry_risk_multiplier  →  risk_score</text>
+  <rect x="292" y="558" width="120" height="24" rx="6" fill="#003a1a"/>
+  <text x="352" y="574" font-size="10" font-weight="bold" fill="#00c853" text-anchor="middle">✅ PASS ≥75% &lt;30</text>
+  <rect x="428" y="558" width="120" height="24" rx="6" fill="#3a2a00"/>
+  <text x="488" y="574" font-size="10" font-weight="bold" fill="#e8a000" text-anchor="middle">⚠️ FLAG 50-74%</text>
+  <rect x="566" y="558" width="120" height="24" rx="6" fill="#3a0000"/>
+  <text x="626" y="574" font-size="10" font-weight="bold" fill="#ff4444" text-anchor="middle">🚫 BLOCK &lt;50% ≥60</text>
+
+  <!-- Cross-Validator -->
+  <g filter="url(#shadow)">
+    <rect x="278" y="622" width="460" height="100" rx="10" fill="#2a1200" stroke="#e8a000" stroke-width="1.5"/>
+    <rect x="278" y="622" width="460" height="5" rx="3" fill="#e8a000"/>
+  </g>
+  <text x="508" y="648" font-size="13" font-weight="bold" fill="#e8a000" text-anchor="middle">🔀 CrossValidator  (cross_validator.py)</text>
+  <text x="508" y="666" font-size="10" fill="#cc9900" text-anchor="middle">Runs same detection through both models independently</text>
+  <rect x="290" y="678" width="196" height="34" rx="6" fill="#1a0d00"/>
+  <text x="388" y="693" font-size="9" fill="#ffdd88" text-anchor="middle">Agreement Score:</text>
+  <text x="388" y="708" font-size="9" fill="#886600" text-anchor="middle">Action(50%) + Conf-gap(30%) + Tech(20%)</text>
+  <rect x="496" y="678" width="228" height="34" rx="6" fill="#1a0d00"/>
+  <text x="610" y="693" font-size="9" fill="#ffdd88" text-anchor="middle">Conservative consensus:</text>
+  <text x="610" y="708" font-size="9" fill="#886600" text-anchor="middle">if either says BLOCK → BLOCK</text>
+
+  <!-- Pydantic Models note -->
+  <g filter="url(#shadow)">
+    <rect x="278" y="748" width="460" height="62" rx="10" fill="#0a1220" stroke="#4ea8de" stroke-width="1" stroke-dasharray="5,3"/>
+  </g>
+  <text x="508" y="770" font-size="11" font-weight="bold" fill="#4ea8de" text-anchor="middle">📦 Pydantic v2 Data Models  (models.py)</text>
+  <text x="370" y="790" font-size="10" fill="#88aacc" text-anchor="middle">DetectionResult</text>
+  <text x="508" y="790" font-size="10" fill="#88aacc" text-anchor="middle">CrossValidationResult</text>
+  <text x="650" y="790" font-size="10" fill="#88aacc" text-anchor="middle">ClaimAnalysis</text>
+  <text x="508" y="804" font-size="9" fill="#446688" text-anchor="middle">Validated structured I/O for all detection pipeline stages</text>
+
+  <!-- ═════════════════════════════════════════════════════════
+       ZONE 3: AI SERVICES TIER
+  ═══════════════════════════════════════════════════════════ -->
+  <rect x="776" y="88" width="200" height="460" rx="14" fill="#140a20" stroke="#cc88ff" stroke-width="1.5" stroke-dasharray="8,4"/>
+  <text x="876" y="112" font-size="12" font-weight="bold" fill="#cc88ff" text-anchor="middle">AI SERVICES</text>
+  <text x="876" y="128" font-size="10" fill="#885599" text-anchor="middle">External LLM APIs</text>
+
+  <!-- Claude -->
+  <g filter="url(#shadow)">
+    <rect x="790" y="142" width="172" height="120" rx="10" fill="url(#aiGrad)"/>
+    <rect x="790" y="142" width="172" height="5" rx="3" fill="#f0a500"/>
+  </g>
+  <text x="876" y="170" font-size="12" font-weight="bold" fill="#fff" text-anchor="middle">🤖 Anthropic</text>
+  <text x="876" y="188" font-size="12" font-weight="bold" fill="#fff" text-anchor="middle">Claude Sonnet</text>
+  <text x="876" y="210" font-size="10" fill="#e8ccff" text-anchor="middle">claude-sonnet-4-6</text>
+  <text x="876" y="228" font-size="10" fill="#cc88ff" text-anchor="middle">Response generation</text>
+  <text x="876" y="244" font-size="10" fill="#cc88ff" text-anchor="middle">Hallucination detection</text>
+  <text x="876" y="260" font-size="9" fill="#885599" text-anchor="middle">@st.cache_resource client</text>
+
+  <!-- GPT-4o -->
+  <g filter="url(#shadow)">
+    <rect x="790" y="282" width="172" height="110" rx="10" fill="#1a3a1a"/>
+    <rect x="790" y="282" width="172" height="5" rx="3" fill="#00c853"/>
+  </g>
+  <text x="876" y="310" font-size="12" font-weight="bold" fill="#fff" text-anchor="middle">🤖 OpenAI</text>
+  <text x="876" y="328" font-size="12" font-weight="bold" fill="#fff" text-anchor="middle">GPT-4o</text>
+  <text x="876" y="350" font-size="10" fill="#aaffbb" text-anchor="middle">Independent cross-validation</text>
+  <text x="876" y="368" font-size="10" fill="#aaffbb" text-anchor="middle">JSON object response mode</text>
+  <text x="876" y="386" font-size="9" fill="#446644" text-anchor="middle">Optional (key in secrets)</text>
+
+  <!-- ═════════════════════════════════════════════════════════
+       ZONE 4: INFRA / DEPLOYMENT TIER
+  ═══════════════════════════════════════════════════════════ -->
+  <rect x="776" y="568" width="200" height="260" rx="14" fill="#0a1a0a" stroke="#00c853" stroke-width="1.5" stroke-dasharray="8,4"/>
+  <text x="876" y="592" font-size="12" font-weight="bold" fill="#00c853" text-anchor="middle">INFRA / DEPLOY</text>
+  <text x="876" y="608" font-size="10" fill="#226622" text-anchor="middle">Streamlit Cloud + GitHub</text>
+
+  <!-- Streamlit Cloud -->
+  <g filter="url(#shadow)">
+    <rect x="790" y="618" width="172" height="80" rx="10" fill="url(#extGrad)"/>
+  </g>
+  <text x="876" y="644" font-size="11" font-weight="bold" fill="#fff" text-anchor="middle">☁️ Streamlit Cloud</text>
+  <text x="876" y="662" font-size="10" fill="#aaffbb" text-anchor="middle">Managed hosting</text>
+  <text x="876" y="678" font-size="10" fill="#aaffbb" text-anchor="middle">Auto-deploy from GitHub</text>
+  <text x="876" y="694" font-size="9" fill="#669966" text-anchor="middle">share.streamlit.io</text>
+
+  <!-- Secrets -->
+  <g filter="url(#shadow)">
+    <rect x="790" y="716" width="172" height="70" rx="10" fill="#1a1a00"/>
+  </g>
+  <text x="876" y="740" font-size="11" font-weight="bold" fill="#ffdd44" text-anchor="middle">🔑 st.secrets</text>
+  <text x="876" y="758" font-size="10" fill="#aaaa44" text-anchor="middle">ANTHROPIC_API_KEY</text>
+  <text x="876" y="774" font-size="10" fill="#aaaa44" text-anchor="middle">OPENAI_API_KEY</text>
+  <text x="876" y="790" font-size="9" fill="#666600" text-anchor="middle">demo_users credentials</text>
+
+  <!-- ═════════════════════════════════════════════════════════
+       ARROWS
+  ═══════════════════════════════════════════════════════════ -->
+  <!-- Client → App -->
+  <line x1="224" y1="300" x2="262" y2="300" stroke="#4ea8de" stroke-width="2" marker-end="url(#arr)"/>
+  <line x1="224" y1="380" x2="262" y2="380" stroke="#4ea8de" stroke-width="2" marker-end="url(#arr)"/>
+  <text x="243" y="295" font-size="9" fill="#88aacc" text-anchor="middle">query</text>
+  <text x="243" y="375" font-size="9" fill="#88aacc" text-anchor="middle">result</text>
+
+  <!-- App → Claude -->
+  <line x1="752" y1="200" x2="788" y2="200" stroke="#cc88ff" stroke-width="2" marker-end="url(#arrP)"/>
+  <text x="770" y="193" font-size="9" fill="#cc88ff" text-anchor="middle">detect</text>
+  <line x1="752" y1="380" x2="788" y2="340" stroke="#cc88ff" stroke-width="1.5" stroke-dasharray="5,3" marker-end="url(#arrP)"/>
+  <text x="770" y="370" font-size="9" fill="#cc88ff" text-anchor="middle">cross-val</text>
+
+  <!-- App → GPT-4o -->
+  <line x1="752" y1="660" x2="810" y2="390" stroke="#e8a000" stroke-width="1.5" stroke-dasharray="5,3" marker-end="url(#arrY)"/>
+
+  <!-- App → Streamlit Cloud -->
+  <line x1="752" y1="780" x2="788" y2="750" stroke="#00c853" stroke-width="1.5" stroke-dasharray="5,3" marker-end="url(#arrG)"/>
+
+  <!-- Industry → Grounding (internal) -->
+  <line x1="500" y1="200" x2="514" y2="200" stroke="#e8a000" stroke-width="1.5" marker-end="url(#arrY)"/>
+
+  <!-- Module → Detection -->
+  <line x1="389" y1="270" x2="389" y2="296" stroke="#4ea8de" stroke-width="1.5" marker-end="url(#arr)"/>
+  <line x1="627" y1="270" x2="627" y2="296" stroke="#e8a000" stroke-width="1.5" marker-end="url(#arrY)"/>
+
+  <!-- Detection → Policy -->
+  <line x1="508" y1="476" x2="508" y2="502" stroke="#cc88ff" stroke-width="2" marker-end="url(#arrP)"/>
+
+  <!-- Policy → CrossValidator -->
+  <line x1="508" y1="592" x2="508" y2="622" stroke="#e8a000" stroke-width="2" marker-end="url(#arrY)"/>
+
+  <!-- CrossValidator → Models -->
+  <line x1="508" y1="722" x2="508" y2="748" stroke="#4ea8de" stroke-width="2" marker-end="url(#arr)"/>
+
+  <!-- Legend -->
+  <rect x="20" y="796" width="960" height="50" rx="8" fill="#0d1a2e" opacity="0.9"/>
+  <text x="50" y="816" font-size="10" fill="#88aacc" font-weight="bold">Zones:</text>
+  <rect x="110" y="806" width="12" height="12" rx="2" fill="#0c1e38" stroke="#2980b9" stroke-width="1.5"/>
+  <text x="128" y="817" font-size="10" fill="#2980b9">Client Tier</text>
+  <rect x="220" y="806" width="12" height="12" rx="2" fill="#0d1d36" stroke="#4ea8de" stroke-width="1.5"/>
+  <text x="238" y="817" font-size="10" fill="#4ea8de">Application Tier (TrustLayer Core)</text>
+  <rect x="490" y="806" width="12" height="12" rx="2" fill="#140a20" stroke="#cc88ff" stroke-width="1.5"/>
+  <text x="508" y="817" font-size="10" fill="#cc88ff">AI Services</text>
+  <rect x="610" y="806" width="12" height="12" rx="2" fill="#0a1a0a" stroke="#00c853" stroke-width="1.5"/>
+  <text x="628" y="817" font-size="10" fill="#00c853">Infra/Deploy</text>
+  <text x="50" y="838" font-size="10" fill="#88aacc" font-weight="bold">Arrows:</text>
+  <line x1="110" y1="834" x2="140" y2="834" stroke="#4ea8de" stroke-width="1.5" marker-end="url(#arr)"/>
+  <text x="148" y="838" font-size="10" fill="#4ea8de">Primary flow</text>
+  <line x1="240" y1="834" x2="270" y2="834" stroke="#e8a000" stroke-width="1.5" stroke-dasharray="5,3" marker-end="url(#arrY)"/>
+  <text x="278" y="838" font-size="10" fill="#e8a000">Optional / async</text>
+  <line x1="390" y1="834" x2="420" y2="834" stroke="#cc88ff" stroke-width="1.5" marker-end="url(#arrP)"/>
+  <text x="428" y="838" font-size="10" fill="#cc88ff">Claude API call</text>
+  <line x1="540" y1="834" x2="570" y2="834" stroke="#00c853" stroke-width="1.5" stroke-dasharray="5,3" marker-end="url(#arrG)"/>
+  <text x="578" y="838" font-size="10" fill="#00c853">Deployment</text>
+</svg>

@@ -1,0 +1,343 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1300 980" width="1300" height="980" font-family="Segoe UI, Arial, sans-serif">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#080f1e"/>
+      <stop offset="100%" style="stop-color:#0e1c34"/>
+    </linearGradient>
+    <linearGradient id="classGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:#1f3864"/>
+      <stop offset="100%" style="stop-color:#142240"/>
+    </linearGradient>
+    <linearGradient id="modelGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:#1a3030"/>
+      <stop offset="100%" style="stop-color:#0d1e1e"/>
+    </linearGradient>
+    <linearGradient id="utilGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:#2a1a00"/>
+      <stop offset="100%" style="stop-color:#1a0f00"/>
+    </linearGradient>
+    <filter id="sh">
+      <feDropShadow dx="2" dy="4" stdDeviation="5" flood-color="#000" flood-opacity="0.45"/>
+    </filter>
+    <marker id="a" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#4ea8de"/>
+    </marker>
+    <marker id="aG" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#00c853"/>
+    </marker>
+    <marker id="aY" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#e8a000"/>
+    </marker>
+    <marker id="aP" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#cc88ff"/>
+    </marker>
+    <marker id="aR" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#ff4444"/>
+    </marker>
+    <marker id="aDiamond" markerWidth="10" markerHeight="7" refX="0" refY="3.5" orient="auto">
+      <polygon points="5 0, 10 3.5, 5 7, 0 3.5" fill="#4ea8de"/>
+    </marker>
+  </defs>
+
+  <!-- Background -->
+  <rect width="1300" height="980" fill="url(#bg)"/>
+  <rect x="0" y="0" width="1300" height="4" fill="#4ea8de"/>
+
+  <!-- Title -->
+  <text x="650" y="44" font-size="26" font-weight="bold" fill="#ffffff" text-anchor="middle">TrustLayer AI — Low-Level Design (LLD)</text>
+  <text x="650" y="68" font-size="13" fill="#88aacc" text-anchor="middle">Class design, method signatures, data flow, and internal logic</text>
+
+  <!-- ════════════════════════════════════════════════
+       UML CLASS: TrustLayerDetector
+  ═══════════════════════════════════════════════════ -->
+  <g filter="url(#sh)">
+    <rect x="20" y="90" width="380" height="480" rx="12" fill="url(#classGrad)" stroke="#4ea8de" stroke-width="2"/>
+    <!-- Header -->
+    <rect x="20" y="90" width="380" height="40" rx="12" fill="#2e75b6"/>
+    <rect x="20" y="118" width="380" height="12" fill="#2e75b6"/>
+  </g>
+  <text x="210" y="116" font-size="13" font-weight="bold" fill="#fff" text-anchor="middle">«class»  TrustLayerDetector</text>
+  <text x="210" y="130" font-size="10" fill="#aac8ff" text-anchor="middle">trustlayer/detector.py</text>
+
+  <!-- Divider -->
+  <line x1="20" y1="138" x2="400" y2="138" stroke="#2e75b6" stroke-width="1"/>
+
+  <!-- Fields -->
+  <text x="36" y="158" font-size="11" font-weight="bold" fill="#88ccff">Fields</text>
+  <text x="36" y="176" font-size="10" fill="#cce0ff">— client : anthropic.Anthropic</text>
+  <text x="36" y="193" font-size="10" fill="#cce0ff">— model : str = "claude-sonnet-4-6"</text>
+  <text x="36" y="210" font-size="10" fill="#cce0ff">— max_tokens : int = 2048</text>
+
+  <!-- Divider -->
+  <line x1="20" y1="220" x2="400" y2="220" stroke="#1a3060" stroke-width="1"/>
+
+  <!-- Methods -->
+  <text x="36" y="240" font-size="11" font-weight="bold" fill="#88ccff">Methods</text>
+
+  <text x="36" y="260" font-size="10" fill="#aaddff">+ __init__(api_key: str) → None</text>
+  <rect x="36" y="268" width="350" height="28" rx="5" fill="#0a1830"/>
+  <text x="46" y="280" font-size="9" fill="#446688">@st.cache_resource — single Anthropic client per session</text>
+  <text x="46" y="292" font-size="9" fill="#446688">Reads key from st.secrets["ANTHROPIC_API_KEY"]</text>
+
+  <text x="36" y="316" font-size="10" fill="#aaddff">+ analyze(query, response, system_prompt,</text>
+  <text x="52" y="330" font-size="10" fill="#aaddff">  grounding_ctx, risk_tags) → DetectionResult</text>
+  <rect x="36" y="338" width="350" height="56" rx="5" fill="#0a1830"/>
+  <text x="46" y="352" font-size="9" fill="#446688">Builds 8-technique detection prompt</text>
+  <text x="46" y="366" font-size="9" fill="#446688">Calls Claude API → messages.create()</text>
+  <text x="46" y="380" font-size="9" fill="#446688">Calls _clean_and_parse() → dict</text>
+  <text x="46" y="394" font-size="9" fill="#ffaa44">On JSONDecodeError → silent retry with strict JSON prompt</text>
+
+  <text x="36" y="418" font-size="10" fill="#aaddff">— _build_prompt(…) → str</text>
+  <rect x="36" y="426" width="350" height="28" rx="5" fill="#0a1830"/>
+  <text x="46" y="438" font-size="9" fill="#446688">Injects grounding_context and risk_tags into prompt</text>
+  <text x="46" y="452" font-size="9" fill="#446688">Requests JSON with 8 technique objects + summary</text>
+
+  <text x="36" y="476" font-size="10" fill="#aaddff">— _clean_and_parse(text: str) → dict</text>
+  <rect x="36" y="484" width="350" height="28" rx="5" fill="#0a1830"/>
+  <text x="46" y="496" font-size="9" fill="#446688">Strips ```json code fences (regex)</text>
+  <text x="46" y="510" font-size="9" fill="#446688">Calls json.loads() → dict</text>
+
+  <text x="36" y="534" font-size="10" fill="#aaddff">— _apply_policy(conf, risk_factor) → str</text>
+  <rect x="36" y="542" width="350" height="28" rx="5" fill="#0a1830"/>
+  <text x="46" y="554" font-size="9" fill="#446688">risk = (1 - conf/100) × 100 × risk_factor</text>
+  <text x="46" y="568" font-size="9" fill="#00c853">conf ≥ 75 and risk &lt; 30 → PASS   50-74 → FLAG   else → BLOCK</text>
+
+  <!-- ════════════════════════════════════════════════
+       UML CLASS: CrossValidator
+  ═══════════════════════════════════════════════════ -->
+  <g filter="url(#sh)">
+    <rect x="440" y="90" width="380" height="460" rx="12" fill="url(#classGrad)" stroke="#e8a000" stroke-width="2"/>
+    <rect x="440" y="90" width="380" height="40" rx="12" fill="#7d5000"/>
+    <rect x="440" y="118" width="380" height="12" fill="#7d5000"/>
+  </g>
+  <text x="630" y="116" font-size="13" font-weight="bold" fill="#fff" text-anchor="middle">«class»  CrossValidator</text>
+  <text x="630" y="130" font-size="10" fill="#ffdd88" text-anchor="middle">trustlayer/cross_validator.py</text>
+
+  <line x1="440" y1="138" x2="820" y2="138" stroke="#7d5000" stroke-width="1"/>
+  <text x="456" y="158" font-size="11" font-weight="bold" fill="#ffcc44">Fields</text>
+  <text x="456" y="176" font-size="10" fill="#ffdd99">— claude_detector : TrustLayerDetector</text>
+  <text x="456" y="193" font-size="10" fill="#ffdd99">— openai_analyzer : OpenAIAnalyzer</text>
+
+  <line x1="440" y1="204" x2="820" y2="204" stroke="#3a2000" stroke-width="1"/>
+  <text x="456" y="224" font-size="11" font-weight="bold" fill="#ffcc44">Methods</text>
+
+  <text x="456" y="244" font-size="10" fill="#ffeeaa">+ run(query, response, industry_cfg) → CrossValidationResult</text>
+  <rect x="456" y="252" width="350" height="62" rx="5" fill="#1a0d00"/>
+  <text x="466" y="266" font-size="9" fill="#996600">1. claude_detector.analyze() → claude_result</text>
+  <text x="466" y="280" font-size="9" fill="#996600">2. openai_analyzer.analyze() → gpt_result</text>
+  <text x="466" y="294" font-size="9" fill="#996600">3. _score_agreement(claude_result, gpt_result)</text>
+  <text x="466" y="308" font-size="9" fill="#ff8800">4. Conservative consensus: if BLOCK in either → BLOCK</text>
+
+  <text x="456" y="334" font-size="10" fill="#ffeeaa">— _score_agreement(r1, r2) → float</text>
+  <rect x="456" y="342" width="350" height="62" rx="5" fill="#1a0d00"/>
+  <text x="466" y="356" font-size="9" fill="#996600">action_match = 1.0 if r1.decision == r2.decision else 0.0</text>
+  <text x="466" y="370" font-size="9" fill="#996600">conf_gap    = 1.0 - |r1.confidence - r2.confidence| / 100</text>
+  <text x="466" y="384" font-size="9" fill="#996600">tech_div    = 1.0 - |len(r1.issues) - len(r2.issues)| / 8</text>
+  <text x="466" y="398" font-size="9" fill="#ffaa00">score = action(0.5) + conf_gap(0.3) + tech_div(0.2)</text>
+
+  <text x="456" y="424" font-size="10" fill="#ffeeaa">— _label_agreement(score) → (str, str)</text>
+  <rect x="456" y="432" width="350" height="44" rx="5" fill="#1a0d00"/>
+  <text x="466" y="446" font-size="9" fill="#00c853">≥ 0.85 → ("Strong Agreement", "#00a651")</text>
+  <text x="466" y="460" font-size="9" fill="#e8a000">0.65-0.84 → ("Moderate Agreement", "#e8a000")</text>
+  <text x="466" y="474" font-size="9" fill="#ff4444">&lt; 0.65 → ("Significant Disagreement", "#cc2222") → escalate</text>
+
+  <!-- OpenAIAnalyzer sub-class -->
+  <g filter="url(#sh)">
+    <rect x="456" y="500" width="350" height="36" rx="8" fill="#1a3a1a" stroke="#00c853" stroke-width="1.5"/>
+  </g>
+  <text x="631" y="516" font-size="11" font-weight="bold" fill="#00c853" text-anchor="middle">«inner class»  OpenAIAnalyzer</text>
+  <text x="631" y="532" font-size="9" fill="#669966" text-anchor="middle">openai.OpenAI client  |  model=gpt-4o  |  response_format=json_object</text>
+
+  <!-- ════════════════════════════════════════════════
+       UML CLASS: DetectionResult (Pydantic)
+  ═══════════════════════════════════════════════════ -->
+  <g filter="url(#sh)">
+    <rect x="860" y="90" width="400" height="300" rx="12" fill="url(#modelGrad)" stroke="#00c853" stroke-width="2"/>
+    <rect x="860" y="90" width="400" height="40" rx="12" fill="#1e5631"/>
+    <rect x="860" y="118" width="400" height="12" fill="#1e5631"/>
+  </g>
+  <text x="1060" y="116" font-size="13" font-weight="bold" fill="#fff" text-anchor="middle">«Pydantic model»  DetectionResult</text>
+  <text x="1060" y="130" font-size="10" fill="#aaffbb" text-anchor="middle">trustlayer/models.py</text>
+
+  <line x1="860" y1="138" x2="1260" y2="138" stroke="#1e5631" stroke-width="1"/>
+  <text x="876" y="158" font-size="11" font-weight="bold" fill="#88ffaa">Fields</text>
+  <text x="876" y="176" font-size="10" fill="#ccffdd">query : str</text>
+  <text x="876" y="193" font-size="10" fill="#ccffdd">response : str</text>
+  <text x="876" y="210" font-size="10" fill="#ccffdd">confidence_score : float          # 0–100</text>
+  <text x="876" y="227" font-size="10" fill="#ccffdd">risk_score : float                # 0–100 × multiplier</text>
+  <text x="876" y="244" font-size="10" fill="#ccffdd">decision : Literal["PASS","FLAG","BLOCK"]</text>
+  <text x="876" y="261" font-size="10" fill="#ccffdd">technique_scores : dict[str, float]</text>
+  <text x="876" y="278" font-size="10" fill="#ccffdd">flagged_issues : list[str]</text>
+  <text x="876" y="295" font-size="10" fill="#ccffdd">claim_analysis : list[ClaimAnalysis]</text>
+  <text x="876" y="312" font-size="10" fill="#ccffdd">industry : str</text>
+  <text x="876" y="329" font-size="10" fill="#ccffdd">timestamp : datetime</text>
+  <text x="876" y="346" font-size="10" fill="#88ffaa">model_config = ConfigDict(arbitrary_types_allowed=True)</text>
+  <text x="876" y="366" font-size="10" fill="#ccffdd">source : Literal["claude", "gpt4o"]  # for cross-validation</text>
+  <text x="876" y="383" font-size="9" fill="#446644" font-style="italic">Validated by Pydantic v2 — all fields type-checked on creation</text>
+
+  <!-- ════════════════════════════════════════════════
+       UML CLASS: CrossValidationResult
+  ═══════════════════════════════════════════════════ -->
+  <g filter="url(#sh)">
+    <rect x="860" y="418" width="400" height="220" rx="12" fill="url(#modelGrad)" stroke="#e8a000" stroke-width="2"/>
+    <rect x="860" y="418" width="400" height="40" rx="12" fill="#7d5000"/>
+    <rect x="860" y="446" width="400" height="12" fill="#7d5000"/>
+  </g>
+  <text x="1060" y="444" font-size="13" font-weight="bold" fill="#fff" text-anchor="middle">«Pydantic model»  CrossValidationResult</text>
+  <text x="1060" y="458" font-size="10" fill="#ffdd88" text-anchor="middle">trustlayer/models.py</text>
+
+  <line x1="860" y1="466" x2="1260" y2="466" stroke="#7d5000" stroke-width="1"/>
+  <text x="876" y="486" font-size="11" font-weight="bold" fill="#ffcc44">Fields</text>
+  <text x="876" y="504" font-size="10" fill="#ffeeaa">claude_result : DetectionResult</text>
+  <text x="876" y="521" font-size="10" fill="#ffeeaa">gpt_result : DetectionResult</text>
+  <text x="876" y="538" font-size="10" fill="#ffeeaa">agreement_pct : float           # 0.0 – 1.0</text>
+  <text x="876" y="555" font-size="10" fill="#ffeeaa">agreement_label : str           # "Strong" / "Moderate" / "Significant..."</text>
+  <text x="876" y="572" font-size="10" fill="#ffeeaa">agreement_color : str           # hex color for badge</text>
+  <text x="876" y="589" font-size="10" fill="#ffeeaa">consensus_decision : str        # PASS / FLAG / BLOCK</text>
+  <text x="876" y="606" font-size="10" fill="#ffeeaa">consensus_confidence : float</text>
+  <text x="876" y="623" font-size="9" fill="#886622" font-style="italic">consensus is always conservative — BLOCK promoted if either model says BLOCK</text>
+
+  <!-- ════════════════════════════════════════════════
+       DATA FLOW: industries.py
+  ═══════════════════════════════════════════════════ -->
+  <g filter="url(#sh)">
+    <rect x="860" y="668" width="400" height="200" rx="12" fill="url(#utilGrad)" stroke="#e8a000" stroke-width="1.5"/>
+    <rect x="860" y="668" width="400" height="36" rx="10" fill="#5c3800"/>
+  </g>
+  <text x="1060" y="691" font-size="13" font-weight="bold" fill="#fff" text-anchor="middle">«module»  industries.py</text>
+  <text x="1060" y="705" font-size="10" fill="#ffdd88" text-anchor="middle">INDUSTRIES : dict[str, dict]</text>
+  <line x1="860" y1="710" x2="1260" y2="710" stroke="#3a2000" stroke-width="1"/>
+  <text x="876" y="730" font-size="10" fill="#ffeeaa">Each entry contains:</text>
+  <text x="876" y="748" font-size="10" fill="#cc9900">  icon, description, risk_factor : float</text>
+  <text x="876" y="765" font-size="10" fill="#cc9900">  system_prompt : str</text>
+  <text x="876" y="782" font-size="10" fill="#cc9900">  risk_tags : list[str]</text>
+  <text x="876" y="799" font-size="10" fill="#cc9900">  scenarios : list[dict]  # label + query</text>
+  <text x="876" y="816" font-size="10" fill="#cc9900">  grounding_context : str  # authoritative facts</text>
+  <line x1="860" y1="826" x2="1260" y2="826" stroke="#3a2000" stroke-width="1"/>
+  <text x="876" y="845" font-size="10" fill="#aa8800">get_industry(name: str) → dict</text>
+  <text x="876" y="861" font-size="9" fill="#665500" font-style="italic">Falls back to INDUSTRIES["General"] if name not found</text>
+
+  <!-- ════════════════════════════════════════════════
+       DATA FLOW: JSON Retry
+  ═══════════════════════════════════════════════════ -->
+  <g filter="url(#sh)">
+    <rect x="20" y="600" width="800" height="170" rx="12" fill="#0d1220" stroke="#ffaa44" stroke-width="1.5" stroke-dasharray="7,3"/>
+  </g>
+  <text x="420" y="628" font-size="13" font-weight="bold" fill="#ffaa44" text-anchor="middle">JSON Retry Logic — Sequence</text>
+  <text x="420" y="648" font-size="10" fill="#cc8800" text-anchor="middle">_clean_and_parse() with automatic retry on parse failure (~2% of API calls)</text>
+
+  <!-- Sequence boxes -->
+  <rect x="40" y="658" width="100" height="24" rx="5" fill="#1a3060"/>
+  <text x="90" y="674" font-size="9" fill="#aaddff" text-anchor="middle">1. API response</text>
+  <line x1="142" y1="670" x2="165" y2="670" stroke="#4ea8de" stroke-width="1.5" marker-end="url(#a)"/>
+
+  <rect x="168" y="658" width="110" height="24" rx="5" fill="#1a3060"/>
+  <text x="223" y="674" font-size="9" fill="#aaddff" text-anchor="middle">2. strip fences</text>
+  <line x1="280" y1="670" x2="305" y2="670" stroke="#4ea8de" stroke-width="1.5" marker-end="url(#a)"/>
+
+  <rect x="308" y="658" width="100" height="24" rx="5" fill="#1a3060"/>
+  <text x="358" y="674" font-size="9" fill="#aaddff" text-anchor="middle">3. json.loads()</text>
+  <line x1="410" y1="670" x2="435" y2="670" stroke="#00c853" stroke-width="1.5" marker-end="url(#aG)"/>
+  <text x="422" y="664" font-size="8" fill="#00c853">OK</text>
+
+  <rect x="438" y="658" width="110" height="24" rx="5" fill="#1a3060"/>
+  <text x="493" y="674" font-size="9" fill="#aaddff" text-anchor="middle">4. return dict ✓</text>
+
+  <!-- Retry path -->
+  <line x1="358" y1="682" x2="358" y2="710" stroke="#ff4444" stroke-width="1.5"/>
+  <text x="375" y="700" font-size="8" fill="#ff4444">Fail</text>
+  <line x1="358" y1="710" x2="200" y2="710" stroke="#ff4444" stroke-width="1.5"/>
+  <line x1="200" y1="710" x2="200" y2="730" stroke="#ff4444" stroke-width="1.5" marker-end="url(#aR)"/>
+  <rect x="140" y="732" width="190" height="30" rx="5" fill="#3a0a0a"/>
+  <text x="235" y="748" font-size="9" fill="#ffaaaa" text-anchor="middle">5. Retry API call</text>
+  <text x="235" y="760" font-size="9" fill="#884444" text-anchor="middle">"Return ONLY valid JSON"</text>
+  <line x1="332" y1="747" x2="360" y2="747" stroke="#ffaa44" stroke-width="1.5" marker-end="url(#aY)"/>
+
+  <rect x="362" y="732" width="120" height="30" rx="5" fill="#1a3060"/>
+  <text x="422" y="748" font-size="9" fill="#aaddff" text-anchor="middle">6. json.loads() again</text>
+  <text x="422" y="760" font-size="9" fill="#669966" text-anchor="middle">→ return dict ✓</text>
+
+  <!-- Policy decision tree -->
+  <g filter="url(#sh)">
+    <rect x="20" y="790" width="800" height="170" rx="12" fill="#0d1220" stroke="#cc88ff" stroke-width="1.5"/>
+  </g>
+  <text x="420" y="818" font-size="13" font-weight="bold" fill="#cc88ff" text-anchor="middle">_apply_policy() — Decision Tree</text>
+
+  <!-- Decision node -->
+  <polygon points="200,848 300,865 200,882 100,865" fill="#1a0a30" stroke="#cc88ff" stroke-width="1.5"/>
+  <text x="200" y="862" font-size="10" fill="#cc88ff" text-anchor="middle">conf ≥ 75?</text>
+  <text x="200" y="876" font-size="10" fill="#cc88ff" text-anchor="middle">risk &lt; 30?</text>
+
+  <!-- PASS branch -->
+  <line x1="300" y1="865" x2="370" y2="865" stroke="#00c853" stroke-width="1.5" marker-end="url(#aG)"/>
+  <text x="335" y="858" font-size="9" fill="#00c853">Yes</text>
+  <rect x="372" y="850" width="90" height="30" rx="6" fill="#003a1a"/>
+  <text x="417" y="869" font-size="12" font-weight="bold" fill="#00c853" text-anchor="middle">✅ PASS</text>
+
+  <!-- No → second check -->
+  <line x1="200" y1="882" x2="200" y2="910" stroke="#ff4444" stroke-width="1.5"/>
+  <text x="215" y="900" font-size="9" fill="#ff4444">No</text>
+  <polygon points="200,912 300,929 200,946 100,929" fill="#1a0a30" stroke="#cc88ff" stroke-width="1.5"/>
+  <text x="200" y="926" font-size="10" fill="#cc88ff" text-anchor="middle">conf 50-74?</text>
+  <text x="200" y="940" font-size="10" fill="#cc88ff" text-anchor="middle">risk 30-59?</text>
+
+  <!-- FLAG branch -->
+  <line x1="300" y1="929" x2="370" y2="929" stroke="#e8a000" stroke-width="1.5" marker-end="url(#aY)"/>
+  <text x="335" y="922" font-size="9" fill="#e8a000">Yes</text>
+  <rect x="372" y="914" width="90" height="30" rx="6" fill="#3a2a00"/>
+  <text x="417" y="933" font-size="12" font-weight="bold" fill="#e8a000" text-anchor="middle">⚠️ FLAG</text>
+
+  <!-- BLOCK branch -->
+  <line x1="100" y1="929" x2="36" y2="929" stroke="#ff4444" stroke-width="1.5"/>
+  <text x="68" y="922" font-size="9" fill="#ff4444">No</text>
+  <rect x="36" y="914" width="90" height="30" rx="6" fill="#3a0000"/>
+  <text x="81" y="933" font-size="12" font-weight="bold" fill="#ff4444" text-anchor="middle">🚫 BLOCK</text>
+
+  <!-- Cross-validation escalation note -->
+  <rect x="500" y="840" width="300" height="100" rx="8" fill="#14082a" stroke="#cc88ff" stroke-width="1"/>
+  <text x="650" y="860" font-size="11" font-weight="bold" fill="#cc88ff" text-anchor="middle">Cross-Val Escalation Rules</text>
+  <text x="650" y="879" font-size="10" fill="#aa66dd" text-anchor="middle">if BLOCK in (claude_dec, gpt_dec) → BLOCK</text>
+  <text x="650" y="897" font-size="10" fill="#aa66dd" text-anchor="middle">if agreement_pct &lt; 0.65:</text>
+  <text x="650" y="915" font-size="10" fill="#ff8800" text-anchor="middle">  PASS → FLAG  |  FLAG → BLOCK</text>
+  <text x="650" y="933" font-size="9" fill="#665599" font-style="italic" text-anchor="middle">Disagreement itself = risk signal</text>
+
+  <!-- ════════════════════════════════════════════════
+       ARROWS between classes
+  ═══════════════════════════════════════════════════ -->
+  <!-- TrustLayerDetector → DetectionResult (creates) -->
+  <line x1="400" y1="250" x2="858" y2="250" stroke="#4ea8de" stroke-width="1.5" stroke-dasharray="6,3" marker-end="url(#a)"/>
+  <text x="620" y="244" font-size="9" fill="#4ea8de" text-anchor="middle">«creates»</text>
+
+  <!-- CrossValidator → CrossValidationResult (creates) -->
+  <line x1="820" y1="510" x2="858" y2="510" stroke="#e8a000" stroke-width="1.5" stroke-dasharray="6,3" marker-end="url(#aY)"/>
+  <text x="839" y="504" font-size="9" fill="#e8a000" text-anchor="middle">«creates»</text>
+
+  <!-- CrossValidator → TrustLayerDetector (uses) -->
+  <line x1="630" y1="138" x2="400" y2="220" stroke="#cc88ff" stroke-width="1.5" stroke-dasharray="5,3" marker-end="url(#aP)"/>
+  <text x="510" y="173" font-size="9" fill="#cc88ff" text-anchor="middle">«uses»</text>
+
+  <!-- CrossValidationResult contains DetectionResult -->
+  <line x1="1060" y1="418" x2="1060" y2="390" stroke="#e8a000" stroke-width="1.5" marker-end="url(#aY)"/>
+  <text x="1085" y="406" font-size="9" fill="#e8a000">«contains»</text>
+
+  <!-- industries → TrustLayerDetector -->
+  <line x1="978" y1="668" x2="400" y2="445" stroke="#e8a000" stroke-width="1" stroke-dasharray="5,3" marker-end="url(#aY)"/>
+  <text x="700" y="555" font-size="9" fill="#e8a000" text-anchor="middle">grounding_context passed to analyze()</text>
+
+  <!-- Legend -->
+  <rect x="20" y="944" width="1260" height="36" rx="8" fill="#0d1a2e" opacity="0.9"/>
+  <line x1="60" y1="962" x2="90" y2="962" stroke="#4ea8de" stroke-width="2" marker-end="url(#a)"/>
+  <text x="98" y="966" font-size="10" fill="#4ea8de">Primary call / creates</text>
+  <line x1="230" y1="962" x2="260" y2="962" stroke="#e8a000" stroke-width="1.5" stroke-dasharray="5,3" marker-end="url(#aY)"/>
+  <text x="268" y="966" font-size="10" fill="#e8a000">Optional / async</text>
+  <line x1="390" y1="962" x2="420" y2="962" stroke="#cc88ff" stroke-width="1.5" stroke-dasharray="5,3" marker-end="url(#aP)"/>
+  <text x="428" y="966" font-size="10" fill="#cc88ff">«uses» dependency</text>
+  <rect x="570" y="954" width="14" height="12" rx="2" fill="#1f3864" stroke="#4ea8de" stroke-width="1.5"/>
+  <text x="590" y="966" font-size="10" fill="#4ea8de">Core class (detector)</text>
+  <rect x="730" y="954" width="14" height="12" rx="2" fill="#1a3030" stroke="#00c853" stroke-width="1.5"/>
+  <text x="750" y="966" font-size="10" fill="#00c853">Pydantic model</text>
+  <rect x="870" y="954" width="14" height="12" rx="2" fill="#2a1a00" stroke="#e8a000" stroke-width="1.5"/>
+  <text x="890" y="966" font-size="10" fill="#e8a000">Config / data module</text>
+  <rect x="1050" y="954" width="14" height="12" rx="2" fill="#0d1220" stroke="#ffaa44" stroke-width="1.5" stroke-dasharray="5,3"/>
+  <text x="1070" y="966" font-size="10" fill="#ffaa44">Internal logic / sequence</text>
+</svg>
