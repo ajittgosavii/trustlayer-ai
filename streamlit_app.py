@@ -664,7 +664,7 @@ with tab_detect:
                     return "background-color:#DCFCE7;color:#166534"
 
                 st.dataframe(
-                    df.style.applymap(color_risk, subset=["Risk"]),
+                    df.style.map(color_risk, subset=["Risk"]),
                     use_container_width=True,
                     hide_index=True,
                 )
@@ -731,7 +731,7 @@ with tab_history:
             return "background-color:#DCFCE7;color:#166534;font-weight:700"
 
         st.dataframe(
-            df_hist.style.applymap(color_action, subset=["action"]),
+            df_hist.style.map(color_action, subset=["action"]),
             use_container_width=True,
             hide_index=True,
         )
@@ -828,7 +828,7 @@ with tab_howto:
         return "color:#991B1B;font-weight:700"
 
     st.dataframe(
-        df_tech.style.applymap(color_acc, subset=["Accuracy"]),
+        df_tech.style.map(color_acc, subset=["Accuracy"]),
         use_container_width=True,
         hide_index=True,
     )
